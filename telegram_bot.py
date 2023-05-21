@@ -209,7 +209,7 @@ def voice_processing(message):
 
 def log_unrestricted(message):
     if message.from_user.id not in already_restriced_users:
-        bot.reply_to(message, "You are not allowed to use me! Your user meta data and all messages are logged!")
+        bot.reply_to(message, "You are not allowed to use me! You can ask me via mail (david@it-buechner.de) for permission. Your user meta data and all messages are logged!")
         already_restriced_users.add(message.from_user.id)
     while not lock():
         time.sleep(1)

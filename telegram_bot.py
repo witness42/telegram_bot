@@ -21,7 +21,7 @@ import requests
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
-config_file = "example.conf" # for different personas just change this to a newly crafted config file
+config_file = "bot.conf"
 
 """ Read config file """
 config = configparser.ConfigParser()

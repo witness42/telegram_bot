@@ -175,10 +175,12 @@ def generate(message):
             response = requests.get(image_url)
             stop_time = time.time()
             logging.info("time taken for image generation: " + str(round(start_time - stop_time, 2)) + "seconds")
-            bot.send_photo(message.chat.id, response.content, caption=message.text[:11])
+            bot.send_photo(message.chat.id, response.content, caption=message.text)
         except openai.error.OpenAIError as e:
           logging.error(f"HTTP STATUS: {e.http_status}, ERROR: {e.error}")
           bot.reply_to(message, e.error)
+    else:
+        log_unrestricted(message)
 
 @bot.message_handler(content_types=['image'])
 def edit_image(message):

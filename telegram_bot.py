@@ -42,6 +42,7 @@ PERSONA_NAME = config.get("persona", "name")
 SYSTEM_MSG = config.get("persona", "system")
 WELCOME_MSG = config.get("persona", "welcome")
 FORGET_MSG = config.get("persona", "forget")
+NUM_IMAGES = int(config.get("persona", "num_images")) # [1, 10]
 NOT_FORGOTTEN_MSG = config.get("persona", "notforgotten")
 ERROR_MSG = config.get("persona", "error")
 
@@ -169,7 +170,7 @@ def generate(message):
             response = openai.Image.create(
               prompt=message.text,
               api_key=openai.api_key,
-              n=1,
+              n=NUM_IMAGES,
               size="1024x1024"
             )
             image_url = response['data'][0]['url']

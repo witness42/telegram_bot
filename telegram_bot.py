@@ -162,11 +162,14 @@ def send_message(message, transcript = None):
 @bot.message_handler(commands=['generate'])
 def generate(message):
     if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
+        if message.text[10:] == "":
+            bot.reply_to(message, "Please enter a prompt for the image generation")
+            return
         start_time = time.time()
-        logging.info(f"{message.from_user.first_name}({message.from_user.id}): Image generation message({message.text[11:]})")
+        logging.info(f"{message.from_user.first_name}({message.from_user.id}): Image generation message({message.text[10:]})")
         try:
             response = openai.Image.create(
-              prompt=message.text[11:],
+              prompt=message.text[10:],
               api_key=openai.api_key,
               n=NUM_IMAGES,
               size="1024x1024"
@@ -175,7 +178,7 @@ def generate(message):
             response = requests.get(image_url)
             stop_time = time.time()
             logging.info("time taken for image generation: " + str(round(start_time - stop_time, 2)) + "seconds")
-            bot.send_photo(message.chat.id, response.content, caption=message.text[11:])
+            bot.send_photo(message.chat.id, response.content, caption=message.text[10:])
         except openai.error.OpenAIError as e:
           logging.error(f"HTTP STATUS: {e.http_status}, ERROR: {e.error}")
           bot.reply_to(message, e.error)

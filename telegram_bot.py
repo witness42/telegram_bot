@@ -101,7 +101,7 @@ def send_message(message, transcript = None):
             message.text = transcript
         logging.info(f"{message.from_user.first_name}({message.from_user.id}): {message.text}")
         if user_context.get(message.from_user.id, None) is None:
-            user_context[message.from_user.id] = Context(message.from_user.id, message.from_user.first_name)
+            user_context[message.from_user.id] = Context(message.from_user.id)
         context_obj = user_context[message.from_user.id]
         msg = {"role": "user", "content": message.text}
         context_obj.add_message(msg)
@@ -175,7 +175,7 @@ def generate(message):
             response = requests.get(image_url)
             stop_time = time.time()
             logging.info("time taken for image generation: " + str(round(start_time - stop_time, 2)) + "seconds")
-            bot.send_photo(message.chat.id, response.content, caption=message.text)
+            bot.send_photo(message.chat.id, response.content, caption=message.text[:11])
         except openai.error.OpenAIError as e:
           logging.error(f"HTTP STATUS: {e.http_status}, ERROR: {e.error}")
           bot.reply_to(message, e.error)

@@ -163,10 +163,10 @@ def send_message(message, transcript = None):
 def generate(message):
     if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
         start_time = time.time()
-        logging.info(f"{message.from_user.first_name}({message.from_user.id}): Image generation message({message.text})")
+        logging.info(f"{message.from_user.first_name}({message.from_user.id}): Image generation message({message.text[11:]})")
         try:
             response = openai.Image.create(
-              prompt=message.text,
+              prompt=message.text[11:],
               api_key=openai.api_key,
               n=NUM_IMAGES,
               size="1024x1024"
@@ -175,7 +175,7 @@ def generate(message):
             response = requests.get(image_url)
             stop_time = time.time()
             logging.info("time taken for image generation: " + str(round(start_time - stop_time, 2)) + "seconds")
-            bot.send_photo(message.chat.id, response.content, caption=message.text)
+            bot.send_photo(message.chat.id, response.content, caption=message.text[11:])
         except openai.error.OpenAIError as e:
           logging.error(f"HTTP STATUS: {e.http_status}, ERROR: {e.error}")
           bot.reply_to(message, e.error)

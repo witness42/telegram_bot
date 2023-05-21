@@ -12,8 +12,6 @@ import logging
 import os
 import time
 import datetime
-from io import BytesIO
-from PIL import Image
 import telebot
 import openai
 import tiktoken
@@ -175,10 +173,9 @@ def generate(message):
             )
             image_url = response['data'][0]['url']
             response = requests.get(image_url)
-            img = Image.open(BytesIO(response.content))
             stop_time = time.time()
             logging.info("time taken for image generation: " + str(round(start_time - stop_time, 2)) + "seconds")
-            bot.send_photo(message.chat.id, img, caption=message.text)
+            bot.send_photo(message.chat.id, response.content, caption=message.text)
         except openai.error.OpenAIError as e:
           logging.error(f"HTTP STATUS: {e.http_status}, ERROR: {e.error}")
           bot.reply_to(message, e.error)

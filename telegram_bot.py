@@ -192,14 +192,17 @@ def edit_image(message):
         file_id = message.photo[-1].file_id
         file = bot.get_file(file_id)
         downloaded_file = bot.download_file(file.file_path)
+        with open("image.png", 'wb') as new_file:
+            new_file.write(downloaded_file)
         try:
             response = openai.Image.create_variation(
-              image=downloaded_file,
+              image=open("image.png", "rb"),
               n=NUM_IMAGES,
               size="1024x1024"
             )
             image_url = response['data'][0]['url']
             response = requests.get(image_url)
+            subprocess.call(["rm", "image.png"])
             stop_time = time.time()
             logging.info("time taken for image generation: " + str(round(start_time - stop_time, 2)) + "seconds")
             bot.send_photo(message.chat.id, response.content)

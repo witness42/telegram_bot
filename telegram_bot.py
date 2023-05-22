@@ -185,9 +185,29 @@ def generate(message):
     else:
         log_unrestricted(message)
 
-@bot.message_handler(content_types=['image'])
+@bot.message_handler(content_types=['photo'])
 def edit_image(message):
-    pass
+    if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
+        start_time = time.time()
+        file_id = message.photo[-1].file_id
+        file = bot.get_file(file_id)
+        downloaded_file = bot.download_file(file.file_path)
+        try:
+            response = openai.Image.create_variation(
+              image=downloaded_file,
+              n=NUM_IMAGES,
+              size="1024x1024"
+            )
+            image_url = response['data'][0]['url']
+            response = requests.get(image_url)
+            stop_time = time.time()
+            logging.info("time taken for image generation: " + str(round(start_time - stop_time, 2)) + "seconds")
+            bot.send_photo(message.chat.id, response.content)
+        except openai.error.OpenAIError as e:
+          logging.error(f"HTTP STATUS: {e.http_status}, ERROR: {e.error}")
+          bot.reply_to(message, e.error)
+    else:
+        log_unrestricted(message)
 
 @bot.message_handler(func=lambda message: True)
 def on_reply(message):

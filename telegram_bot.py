@@ -18,6 +18,7 @@ import tiktoken
 import subprocess
 import configparser
 import requests
+import cv2
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
@@ -181,7 +182,7 @@ def generate(message):
             bot.send_photo(message.chat.id, response.content, caption=message.text[10:])
         except openai.error.OpenAIError as e:
           logging.error(f"HTTP STATUS: {e.http_status}, ERROR: {e.error}")
-          bot.reply_to(message, e.error)
+          bot.reply_to(message, str(e.error))
     else:
         log_unrestricted(message)
 
@@ -194,6 +195,8 @@ def edit_image(message):
         downloaded_file = bot.download_file(file.file_path)
         with open("image.png", 'wb') as new_file:
             new_file.write(downloaded_file)
+        img = cv2.imread('image.png')
+        cv2.imwrite('image.png', img)
         try:
             response = openai.Image.create_variation(
               image=open("image.png", "rb"),
@@ -208,7 +211,7 @@ def edit_image(message):
             bot.send_photo(message.chat.id, response.content)
         except openai.error.OpenAIError as e:
           logging.error(f"HTTP STATUS: {e.http_status}, ERROR: {e.error}")
-          bot.reply_to(message, e.error)
+          bot.reply_to(message, str(e.error))
     else:
         log_unrestricted(message)
 

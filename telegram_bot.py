@@ -268,7 +268,7 @@ def translate_video(message):
         with open(f"{MAIN_PATH}audio.mp3", 'rb') as audio_file:
             transcript = openai.Audio.translate("whisper-1", audio_file)
         os.remove(f"{MAIN_PATH}audio.mp3")
-        send_message(message, transcript["text"])
+        bot.reply_to(message, transcript["text"])
         stop_time = time.time()
         logging.info("time taken for video translation: " + str(round(start_time - stop_time, 2)) + " seconds")
     else:

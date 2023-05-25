@@ -17,7 +17,6 @@ import openai
 import tiktoken
 import configparser
 import requests
-import cv2
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
@@ -194,8 +193,7 @@ def edit_image(message):
         downloaded_file = bot.download_file(file.file_path)
         with open("image.png", 'wb') as new_file:
             new_file.write(downloaded_file)
-        img = cv2.imread('image.png')
-        cv2.imwrite('image.png', img)
+        os.system("convert image.png -resize 1024x1024 image.png")
         try:
             response = openai.Image.create_variation(
               image=open("image.png", "rb"),

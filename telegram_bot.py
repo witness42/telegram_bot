@@ -242,14 +242,31 @@ def voice_processing(message):
         with open(f"{MAIN_PATH}new_file.ogg", 'wb') as audio_file:
             audio_file.write(downloaded_file)
         os.system(f"ffmpeg -i {MAIN_PATH}new_file.ogg -codec:a libmp3lame -qscale:a 2 {MAIN_PATH}new_file.mp3")
-        with open('new_file.mp3', 'rb') as audio_file:
+        with open(f"{MAIN_PATH}new_file.mp3", 'rb') as audio_file:
             transcript = openai.Audio.transcribe("whisper-1", audio_file)
             #transcript = openai.Audio.translate("whisper-1", audio_file)
-            send_message(message, transcript['text'])
+            send_message(message, transcript["text"])
         os.system(f"mv {MAIN_PATH}new_file.mp3" f"{MAIN_PATH}recordings/{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.mp3")
         os.remove(f"{MAIN_PATH}new_file.ogg")
     else:
         log_unrestricted(message)
+
+@bot.message_handler(content_types=['video'])
+def translate_video(message):
+    if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
+        video_file = message.video.get_file()
+        video_url = video_file.file_path
+        response = requests.get(video_url)
+        with open('video.mp4', 'wb') as f:
+            f.write(response.content)
+        os.system(f"ffmpeg -i {MAIN_PATH}video.mp4 {MAIN_PATH}audio.mp3")
+        os.remove(f"{MAIN_PATH}video.mp4")
+        with open(f"{MAIN_PATH}audio.mp3", 'rb') as audio_file:
+            transcript = openai.Audio.transcribe("whisper-1", audio_file)
+        send_message(message, transcript["text"])
+    else:
+        log_unrestricted(message)
+
 
 def log_unrestricted(message):
     if message.from_user.id not in already_restriced_users:

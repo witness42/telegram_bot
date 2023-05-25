@@ -15,7 +15,6 @@ import datetime
 import telebot
 import openai
 import tiktoken
-import subprocess
 import configparser
 import requests
 import cv2
@@ -205,7 +204,7 @@ def edit_image(message):
             )
             image_url = response['data'][0]['url']
             response = requests.get(image_url)
-            subprocess.call(["rm", "image.png"])
+            os.remove("image.png")
             stop_time = time.time()
             logging.info("time taken for image generation: " + str(round(start_time - stop_time, 2)) + "seconds")
             bot.send_photo(message.chat.id, response.content)
@@ -226,13 +225,13 @@ def voice_processing(message):
         downloaded_file = bot.download_file(file_info.file_path)
         with open('new_file.ogg', 'wb') as audio_file:
             audio_file.write(downloaded_file)
-        subprocess.call(["ffmpeg", "-i", "new_file.ogg", "-codec:a", "libmp3lame", "-qscale:a", "2", "new_file.mp3"])
+        os.system("ffmpeg -i new_file.ogg -codec:a libmp3lame -qscale:a 2 new_file.mp3")
         with open('new_file.mp3', 'rb') as audio_file:
             transcript = openai.Audio.transcribe("whisper-1", audio_file)
             #transcript = openai.Audio.translate("whisper-1", audio_file)
             send_message(message, transcript['text'])
-        subprocess.call(["mv", "new_file.mp3", f"recordings/{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.mp3"])
-        subprocess.call(["rm", "new_file.ogg"])
+        os.system("mv new_file.mp3" f"recordings/{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.mp3")
+        os.remove("new_file.ogg")
     else:
         log_unrestricted(message)
 

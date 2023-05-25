@@ -5,7 +5,7 @@ AUTHOR_EMAIL = "david@it-buechner.de"
 DESCRIPTION = "Telegram Bot for the OpenAI API"
 LICENSE = "GPLv3"
 
-TODO: web crawling, activate window method, edit image
+TODO: web crawling, activate window method
 """
 
 import logging
@@ -20,7 +20,10 @@ import requests
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
-config_file = "bot.conf"
+if (len(sys.argv) != 2):
+    print("Usage: python3.9 telegram_bot.py <config_file_path>")
+    sys.exit(1)
+config_file = sys.argv[1]
 
 """ Read config file """
 config = configparser.ConfigParser()

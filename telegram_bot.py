@@ -161,17 +161,18 @@ def send_message(message, transcript = None):
 @bot.message_handler(commands=['generate'])
 def generate(message):
     if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
+        start_time = time.time()
         if message.text[10:] == "":
             bot.reply_to(message, "Please enter a prompt for the image generation")
             return
-        start_time = time.time()
+        bot.reply_to(message, "Your image is being drawn...")
         logging.info(f"{message.from_user.first_name}({message.from_user.id}): Image generation message({message.text[10:]})")
         try:
             response = openai.Image.create(
-              prompt=message.text[10:],
-              api_key=openai.api_key,
-              n=NUM_IMAGES,
-              size="1024x1024"
+                prompt=message.text[10:],
+                api_key=openai.api_key,
+                n=NUM_IMAGES,
+                size="1024x1024"
             )
             image_url = response['data'][0]['url']
             response = requests.get(image_url)
@@ -179,26 +180,19 @@ def generate(message):
             logging.info("time taken for image generation: " + str(round(start_time - stop_time, 2)) + "seconds")
             bot.send_photo(message.chat.id, response.content, caption=message.text[10:] + "\ntime taken for image generation: " + str(round(start_time - stop_time, 2)) + "seconds")
         except openai.error.OpenAIError as e:
-          logging.error(f"HTTP STATUS: {e.http_status}, ERROR: {e.error}")
-          bot.reply_to(message, str(e.error))
+            logging.error(f"HTTP STATUS: {e.http_status}, ERROR: {e.error}")
+            bot.reply_to(message, str(e.error))
     else:
         log_unrestricted(message)
 
 @bot.message_handler(commands=['variation'])
-def call_edit_image(message):
+def make_variation(message):
     if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
+        start_time = time.time()
         if message.get("photo", None) is None:
             bot.reply_to(message, "Please add an image to this command...")
             return
         bot.reply_to(message, "Generating variation...")
-        edit_image(message)
-    else:
-        log_unrestricted(message)
-
-def edit_image(message):
-    if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
-        start_time = time.time()
-        bot.reply_to(message, "Your image is being drawn...")
         file_id = message.photo[-1].file_id
         file = bot.get_file(file_id)
         downloaded_file = bot.download_file(file.file_path)

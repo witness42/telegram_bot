@@ -144,7 +144,7 @@ def send_message(message, transcript = None):
                 context_obj.remove_message(context[1])
                 context_obj.remove_message(context[2])
             stop_time = time.time()
-            logging.info("time taken: " + str(round(start_time - stop_time, 2)) + "seconds")
+            logging.info("time taken: " + str(round(start_time - stop_time, 2)) + " seconds")
             remove_lock()
             bot.reply_to(message, output['content'], parse_mode='Markdown')
         except telebot.apihelper.ApiTelegramException as e:
@@ -181,8 +181,8 @@ def generate(message):
             image_url = response['data'][0]['url']
             response = requests.get(image_url)
             stop_time = time.time()
-            logging.info("time taken for image generation: " + str(round(start_time - stop_time, 2)) + "seconds")
-            bot.send_photo(message.chat.id, response.content, caption=message.text[10:] + "\ntime taken for image generation: " + str(round(start_time - stop_time, 2)) + "seconds")
+            logging.info("time taken for image generation: " + str(round(start_time - stop_time, 2)) + " seconds")
+            bot.send_photo(message.chat.id, response.content, caption=message.text[10:] + "\ntime taken for image generation: " + str(round(start_time - stop_time, 2)) + " seconds")
         except openai.error.OpenAIError as e:
             logging.error(f"HTTP STATUS: {e.http_status}, ERROR: {e.error}")
             bot.reply_to(message, str(e.error))
@@ -222,8 +222,8 @@ def make_variation(message):
             response = requests.get(image_url)
             os.remove(f"{MAIN_PATH}image.png")
             stop_time = time.time()
-            logging.info("time taken for image generation: " + str(round(start_time - stop_time, 2)) + "seconds")
-            bot.send_photo(message.chat.id, response.content, caption="\ntime taken for image generation: " + str(round(start_time - stop_time, 2)) + "seconds")
+            logging.info("time taken for image generation: " + str(round(start_time - stop_time, 2)) + " seconds")
+            bot.send_photo(message.chat.id, response.content, caption="\ntime taken for image generation: " + str(round(start_time - stop_time, 2)) + " seconds")
         except openai.error.OpenAIError as e:
             logging.error(f"HTTP STATUS: {e.http_status}, ERROR: {e.error}")
             bot.reply_to(message, str(e.error))
@@ -237,6 +237,7 @@ def on_reply(message):
 @bot.message_handler(content_types=['voice'])
 def voice_processing(message):
     if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
+        start_time = time.time()
         file_info = bot.get_file(message.voice.file_id)
         downloaded_file = bot.download_file(file_info.file_path)
         with open(f"{MAIN_PATH}new_file.ogg", 'wb') as audio_file:
@@ -244,26 +245,32 @@ def voice_processing(message):
         os.system(f"ffmpeg -i {MAIN_PATH}new_file.ogg -codec:a libmp3lame -qscale:a 2 {MAIN_PATH}new_file.mp3")
         with open(f"{MAIN_PATH}new_file.mp3", 'rb') as audio_file:
             transcript = openai.Audio.transcribe("whisper-1", audio_file)
-            #transcript = openai.Audio.translate("whisper-1", audio_file)
             send_message(message, transcript["text"])
         os.system(f"mv {MAIN_PATH}new_file.mp3" f"{MAIN_PATH}recordings/{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.mp3")
         os.remove(f"{MAIN_PATH}new_file.ogg")
+        stop_time = time.time()
+        logging.info("time taken for voice processing: " + str(round(start_time - stop_time, 2)) + " seconds")
     else:
         log_unrestricted(message)
 
 @bot.message_handler(content_types=['video'])
 def translate_video(message):
     if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
-        video_file = message.video.get_file()
-        video_url = video_file.file_path
-        response = requests.get(video_url)
-        with open('video.mp4', 'wb') as f:
-            f.write(response.content)
+        start_time = time.time()
+        if message.caption not in ["translate", "t"]: # t is a shortcut
+            return
+        file_info = bot.get_file(message.video.file_id)
+        downloaded_file = bot.download_file(file_info.file_path)
+        with open(f"{MAIN_PATH}video.mp4", 'wb') as video_file:
+            video_file.write(downloaded_file)
         os.system(f"ffmpeg -i {MAIN_PATH}video.mp4 {MAIN_PATH}audio.mp3")
         os.remove(f"{MAIN_PATH}video.mp4")
         with open(f"{MAIN_PATH}audio.mp3", 'rb') as audio_file:
-            transcript = openai.Audio.transcribe("whisper-1", audio_file)
+            transcript = openai.Audio.translate("whisper-1", audio_file)
+        os.remove(f"{MAIN_PATH}audio.mp3")
         send_message(message, transcript["text"])
+        stop_time = time.time()
+        logging.info("time taken for video translation: " + str(round(start_time - stop_time, 2)) + " seconds")
     else:
         log_unrestricted(message)
 

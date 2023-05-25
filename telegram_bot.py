@@ -184,7 +184,7 @@ def generate(message):
     else:
         log_unrestricted(message)
 
-@bot.message_handler(content_types=['photo'])
+@bot.message_handler(commands=['variation'], content_types=['photo'])
 def edit_image(message):
     if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
         start_time = time.time()

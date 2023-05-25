@@ -189,14 +189,23 @@ def generate(message):
     else:
         log_unrestricted(message)
 
-@bot.message_handler(commands=['variation'])
+@bot.message_handler(content_types=['photo'])
 def make_variation(message):
     if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
         start_time = time.time()
-        if message.photo is None:
-            bot.reply_to(message, "Please add an image to this command...")
+        if message.text not in ["make variation", "make variations", "m"]: # m is a shortcut
             return
-        bot.reply_to(message, "Generating variation...")
+        if message.text == "make variations":
+            more_images = True
+            if NUM_IMAGES > 4:
+                more_images = False
+            bot.reply_to(message, "Generating variations...")
+        else:
+            if NUM_IMAGES > 1:
+                bot.reply_to(message, "Generating variations...")
+            else:
+                bot.reply_to(message, "Generating variation...")
+            more_images = False
         file_id = message.photo[-1].file_id
         file = bot.get_file(file_id)
         downloaded_file = bot.download_file(file.file_path)
@@ -205,9 +214,9 @@ def make_variation(message):
         os.system("convert image.png -resize 1024x1024 image.png")
         try:
             response = openai.Image.create_variation(
-              image=open("image.png", "rb"),
-              n=NUM_IMAGES,
-              size="1024x1024"
+                image=open("image.png", "rb"),
+                n=4 if more_images else NUM_IMAGES,
+                size="1024x1024"
             )
             image_url = response['data'][0]['url']
             response = requests.get(image_url)
@@ -216,8 +225,8 @@ def make_variation(message):
             logging.info("time taken for image generation: " + str(round(start_time - stop_time, 2)) + "seconds")
             bot.send_photo(message.chat.id, response.content, caption="\ntime taken for image generation: " + str(round(start_time - stop_time, 2)) + "seconds")
         except openai.error.OpenAIError as e:
-          logging.error(f"HTTP STATUS: {e.http_status}, ERROR: {e.error}")
-          bot.reply_to(message, str(e.error))
+            logging.error(f"HTTP STATUS: {e.http_status}, ERROR: {e.error}")
+            bot.reply_to(message, str(e.error))
     else:
         log_unrestricted(message)
 

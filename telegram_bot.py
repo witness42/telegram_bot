@@ -177,7 +177,7 @@ def generate(message):
             response = requests.get(image_url)
             stop_time = time.time()
             logging.info("time taken for image generation: " + str(round(start_time - stop_time, 2)) + "seconds")
-            bot.send_photo(message.chat.id, response.content, caption=message.text[10:] + "time taken for image generation: " + str(round(start_time - stop_time, 2)) + "seconds")
+            bot.send_photo(message.chat.id, response.content, caption=message.text[10:] + "\ntime taken for image generation: " + str(round(start_time - stop_time, 2)) + "seconds")
         except openai.error.OpenAIError as e:
           logging.error(f"HTTP STATUS: {e.http_status}, ERROR: {e.error}")
           bot.reply_to(message, str(e.error))
@@ -216,7 +216,7 @@ def edit_image(message):
             os.remove("image.png")
             stop_time = time.time()
             logging.info("time taken for image generation: " + str(round(start_time - stop_time, 2)) + "seconds")
-            bot.send_photo(message.chat.id, response.content, caption="time taken for image generation: " + str(round(start_time - stop_time, 2)) + "seconds")
+            bot.send_photo(message.chat.id, response.content, caption="\ntime taken for image generation: " + str(round(start_time - stop_time, 2)) + "seconds")
         except openai.error.OpenAIError as e:
           logging.error(f"HTTP STATUS: {e.http_status}, ERROR: {e.error}")
           bot.reply_to(message, str(e.error))

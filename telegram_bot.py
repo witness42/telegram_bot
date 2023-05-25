@@ -189,7 +189,7 @@ def generate(message):
 def make_variation(message):
     if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
         start_time = time.time()
-        if message.get("photo", None) is None:
+        if message.photo is None:
             bot.reply_to(message, "Please add an image to this command...")
             return
         bot.reply_to(message, "Generating variation...")

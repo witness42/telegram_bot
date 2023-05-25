@@ -184,7 +184,17 @@ def generate(message):
     else:
         log_unrestricted(message)
 
-@bot.message_handler(content_types=['photo'])
+@bot.message_handler(commands=['variation'])
+def call_edit_image(message):
+    if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
+        if message.get("photo", None) is None:
+            bot.reply_to(message, "Please add an image to this command...")
+            return
+        bot.reply_to(message, "Generating variation...")
+        edit_image(message)
+    else:
+        log_unrestricted(message)
+
 def edit_image(message):
     if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
         start_time = time.time()
@@ -210,17 +220,6 @@ def edit_image(message):
         except openai.error.OpenAIError as e:
           logging.error(f"HTTP STATUS: {e.http_status}, ERROR: {e.error}")
           bot.reply_to(message, str(e.error))
-    else:
-        log_unrestricted(message)
-
-@bot.message_handler(commands=['variation'])
-def call_edit_image(message):
-    if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
-        if message.get("photo", None) is None:
-            bot.reply_to(message, "Please add an image to this command...")
-            return
-        bot.reply_to(message, "Generating variation...")
-        edit_image(message)
     else:
         log_unrestricted(message)
 

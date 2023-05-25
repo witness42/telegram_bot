@@ -10,6 +10,7 @@ TODO: web crawling, activate window method
 
 import logging
 import os
+import sys
 import time
 import datetime
 import telebot

@@ -220,7 +220,7 @@ def make_variation(message):
             )
             image_url = response['data'][0]['url']
             response = requests.get(image_url)
-            os.remove("image.png")
+            os.remove(f"{MAIN_PATH}image.png")
             stop_time = time.time()
             logging.info("time taken for image generation: " + str(round(start_time - stop_time, 2)) + "seconds")
             bot.send_photo(message.chat.id, response.content, caption="\ntime taken for image generation: " + str(round(start_time - stop_time, 2)) + "seconds")

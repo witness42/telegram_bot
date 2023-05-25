@@ -193,6 +193,7 @@ def generate(message):
 def make_variation(message):
     if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
         start_time = time.time()
+        logging.info(message.text)
         if message.text not in ["make variation", "make variations", "m"]: # m is a shortcut
             return
         if message.text == "make variations":

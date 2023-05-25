@@ -259,6 +259,7 @@ def translate_video(message):
         start_time = time.time()
         if message.caption not in ["translate", "t"]: # t is a shortcut
             return
+        bot.reply_to(message, "Translating video...")
         file_info = bot.get_file(message.video.file_id)
         downloaded_file = bot.download_file(file_info.file_path)
         with open(f"{MAIN_PATH}video.mp4", 'wb') as video_file:

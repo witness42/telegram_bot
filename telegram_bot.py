@@ -21,16 +21,16 @@ import requests
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
-if (len(sys.argv) != 2):
-    print("Usage: python3.9 telegram_bot.py <config_file_path>")
+if (len(sys.argv) != 3):
+    print("Usage: python3.9 telegram_bot.py <config_file_path> <log_file_path>")
     sys.exit(1)
-config_file = sys.argv[1]
+CONFIG = sys.argv[1]
+LOG_FILE = sys.argv[2]
 
 """ Read config file """
 config = configparser.ConfigParser()
-config.read(config_file)
+config.read(CONFIG)
 
-LOG_FILE = config.get("log", "file")
 LOG_LEVELS = {None: logging.DEBUG, "debug": logging.DEBUG, "info": logging.INFO, "warning": logging.WARNING,
               "error": logging.ERROR, "critical": logging.CRITICAL}
 LOG_LEVEL = LOG_LEVELS[config.get("log", "level", fallback=None)]

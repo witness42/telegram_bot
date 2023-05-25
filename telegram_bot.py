@@ -21,14 +21,15 @@ import requests
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
-if (len(sys.argv) != 2):
-    print("Usage: python3.9 telegram_bot.py <main_folder_path>(e.g. /home/dummyuser/shitty_telegram_bot/)")
+if (len(sys.argv) != 3):
+    print("Usage: python3.9 telegram_bot.py <main_folder_path>(e.g. /home/dummyuser/shitty_telegram_bot/) <config_name> (e.g. shitty_telegram_bot)")
     sys.exit(1)
 MAIN_PATH = sys.argv[1]
+CONFIG_NAME = sys.argv[2]
 
 """ Read config file """
 config = configparser.ConfigParser()
-config.read(f"{MAIN_PATH}config.conf")
+config.read(f"{MAIN_PATH}{CONFIG_NAME}.conf")
 
 LOG_LEVELS = {None: logging.DEBUG, "debug": logging.DEBUG, "info": logging.INFO, "warning": logging.WARNING,
               "error": logging.ERROR, "critical": logging.CRITICAL}

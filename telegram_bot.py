@@ -21,20 +21,19 @@ import requests
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
-if (len(sys.argv) != 3):
-    print("Usage: python3.9 telegram_bot.py <config_file_path> <log_file_path>")
+if (len(sys.argv) != 2):
+    print("Usage: python3.9 telegram_bot.py <main_folder_path>(e.g. /home/dummyuser/shitty_telegram_bot/)")
     sys.exit(1)
-CONFIG = sys.argv[1]
-LOG_FILE = sys.argv[2]
+MAIN_PATH = sys.argv[1]
 
 """ Read config file """
 config = configparser.ConfigParser()
-config.read(CONFIG)
+config.read(f"{MAIN_PATH}config.conf")
 
 LOG_LEVELS = {None: logging.DEBUG, "debug": logging.DEBUG, "info": logging.INFO, "warning": logging.WARNING,
               "error": logging.ERROR, "critical": logging.CRITICAL}
 LOG_LEVEL = LOG_LEVELS[config.get("log", "level", fallback=None)]
-logging.basicConfig(filename=LOG_FILE, level=LOG_LEVEL,
+logging.basicConfig(filename=f"{MAIN_PATH}odin.log", level=LOG_LEVEL,
                             format="%(asctime)s [%(levelname)-8s] %(process)d %(module)s (%(lineno)d): %(message)s")
 
 LOCK_DIR = config.get("lock", "dir")
@@ -209,12 +208,12 @@ def make_variation(message):
         file_id = message.photo[-1].file_id
         file = bot.get_file(file_id)
         downloaded_file = bot.download_file(file.file_path)
-        with open("image.png", 'wb') as new_file:
+        with open(f"{MAIN_PATH}image.png", 'wb') as new_file:
             new_file.write(downloaded_file)
-        os.system("convert image.png -resize 1024x1024 image.png")
+        os.system(f"convert {MAIN_PATH}image.png -resize 1024x1024 {MAIN_PATH}image.png")
         try:
             response = openai.Image.create_variation(
-                image=open("image.png", "rb"),
+                image=open(f"{MAIN_PATH}image.png", "rb"),
                 n=4 if more_images else NUM_IMAGES,
                 size="1024x1024"
             )
@@ -239,15 +238,15 @@ def voice_processing(message):
     if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
         file_info = bot.get_file(message.voice.file_id)
         downloaded_file = bot.download_file(file_info.file_path)
-        with open('new_file.ogg', 'wb') as audio_file:
+        with open(f"{MAIN_PATH}new_file.ogg", 'wb') as audio_file:
             audio_file.write(downloaded_file)
-        os.system("ffmpeg -i new_file.ogg -codec:a libmp3lame -qscale:a 2 new_file.mp3")
+        os.system(f"ffmpeg -i {MAIN_PATH}new_file.ogg -codec:a libmp3lame -qscale:a 2 {MAIN_PATH}new_file.mp3")
         with open('new_file.mp3', 'rb') as audio_file:
             transcript = openai.Audio.transcribe("whisper-1", audio_file)
             #transcript = openai.Audio.translate("whisper-1", audio_file)
             send_message(message, transcript['text'])
-        os.system("mv new_file.mp3" f"recordings/{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.mp3")
-        os.remove("new_file.ogg")
+        os.system(f"mv {MAIN_PATH}new_file.mp3" f"{MAIN_PATH}recordings/{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.mp3")
+        os.remove(f"{MAIN_PATH}new_file.ogg")
     else:
         log_unrestricted(message)
 

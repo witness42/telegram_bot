@@ -3,7 +3,6 @@ VERSION = 0.9
 AUTHOR = "David Büchner"
 AUTHOR_EMAIL = "david@it-buechner.de"
 DESCRIPTION = "Telegram Bot for the OpenAI API"
-LICENSE = "GPLv3"
 
 TODO: web crawling, activate window method
 """

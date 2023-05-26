@@ -18,6 +18,7 @@ import openai
 import tiktoken
 import configparser
 import requests
+import json
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 deepl_api_key = os.environ.get("DEEPL_API_KEY")
@@ -273,12 +274,13 @@ def translate_video(message):
         if message.caption.lower() in ["tg", "translate to german"]:
             url = 'https://api-free.deepl.com/v2/translate'
             payload = {'text': transcript["text"], 'target_lang': 'DE'}
-            headers = {'Authorization': "DeepL-Auth-Key" + deepl_api_key,
+            headers = {'Authorization': "DeepL-Auth-Key " + deepl_api_key,
                        'User-Agent': 'YourApp/1.2.3',
                        'Content-Type': 'application/x-www-form-urlencoded'}
 
             response = requests.post(url, data=payload, headers=headers)
-            bot.reply_to(message, response.text)
+            res = json.loads(response.text)
+            bot.reply_to(message, res["translations"][0]["text"])
         else:
             bot.reply_to(message, transcript["text"])
         stop_time = time.time()

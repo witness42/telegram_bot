@@ -20,6 +20,7 @@ import configparser
 import requests
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
+deepl_api_key = os.environ.get("DEEPL_API_KEY")
 
 if (len(sys.argv) != 3):
     print("Usage: python3.9 telegram_bot.py <main_folder_path>(e.g. /home/dummyuser/shitty_telegram_bot/) <config_name> (e.g. shitty_telegram_bot)")
@@ -257,7 +258,7 @@ def voice_processing(message):
 def translate_video(message):
     if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
         start_time = time.time()
-        if message.caption not in ["translate", "t"]: # t is a shortcut
+        if message.caption.lower() not in ["translate", "t", "translate to german", "tg"]: # t is a shortcut
             return
         bot.reply_to(message, "Translating video...")
         file_info = bot.get_file(message.video.file_id)
@@ -269,7 +270,17 @@ def translate_video(message):
         with open(f"{MAIN_PATH}audio.mp3", 'rb') as audio_file:
             transcript = openai.Audio.translate("whisper-1", audio_file)
         os.remove(f"{MAIN_PATH}audio.mp3")
-        bot.reply_to(message, transcript["text"])
+        if message.caption.lower() in ["tg", "translate to german"]:
+            url = 'https://api-free.deepl.com/v2/translate'
+            payload = {'text': transcript["text"], 'target_lang': 'DE'}
+            headers = {'Authorization': "DeepL-Auth-Key" + deepl_api_key,
+                       'User-Agent': 'YourApp/1.2.3',
+                       'Content-Type': 'application/x-www-form-urlencoded'}
+
+            response = requests.post(url, data=payload, headers=headers)
+            bot.reply_to(message, response.text)
+        else:
+            bot.reply_to(message, transcript["text"])
         stop_time = time.time()
         logging.info("time taken for video translation: " + str(round(start_time - stop_time, 2)) + " seconds")
     else:

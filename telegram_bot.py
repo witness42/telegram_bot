@@ -247,7 +247,7 @@ def voice_processing(message):
         with open(f"{MAIN_PATH}new_file.mp3", 'rb') as audio_file:
             transcript = openai.Audio.transcribe("whisper-1", audio_file)
             send_message(message, transcript["text"])
-        os.system(f"mv {MAIN_PATH}new_file.mp3" f"{MAIN_PATH}recordings/{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.mp3")
+        os.system(f"mv {MAIN_PATH}new_file.mp3 {MAIN_PATH}recordings/{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.mp3")
         os.remove(f"{MAIN_PATH}new_file.ogg")
         stop_time = time.time()
         logging.info("time taken for voice processing: " + str(round(start_time - stop_time, 2)) + " seconds")

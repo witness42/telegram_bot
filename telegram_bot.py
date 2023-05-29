@@ -58,6 +58,7 @@ bot = telebot.TeleBot(config.get("telegram", "token"))
 logging.info(f'{bot.user.username} is ready!')
 
 user_context = {}
+admins = set([int(x) for x in config.get("acl", "admins").split(",")])
 allowed_users = set([int(x) for x in config.get("acl", "users").split(",")])
 allowed_groups = set([int(x) for x in config.get("acl", "groups").split(",")])
 already_restriced_users = set()
@@ -99,7 +100,7 @@ def add_user(message):
     if not message.from_user.id in allowed_users:
         log_unrestricted(message)
         return
-    if message.from_user.id in ["852826197", "842210924"]:
+    if message.from_user.id in admins:
         if len(message.text.split()) == 2 and len(list(message.text.split()[1])) == 9:
             try:
                 allowed_users.add(int(message.text.split()[1]))
@@ -125,7 +126,7 @@ def restart(message):
     if not message.from_user.id in allowed_users:
         log_unrestricted(message)
         return
-    if message.from_user.id in ["852826197", "842210924"]:
+    if message.from_user.id in admins:
         bot.reply_to(message, "Restarting...")
         os.system(f"systemctl restart {PERSONA_NAME}.service")
     else:

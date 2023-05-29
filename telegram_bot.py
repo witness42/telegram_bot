@@ -337,7 +337,8 @@ def log_unrestricted(message):
 @bot.message_handler(func=lambda message: True)
 def handle_default(message):
     if message.forward_from is not None:
-        bot.reply_to(message, message.forward_from)
+        if message.from_user.id in admins:
+            bot.reply_to(message, message.forward_from)
     else:
         send_message(message)
 

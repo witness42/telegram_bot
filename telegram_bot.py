@@ -4,7 +4,7 @@ AUTHOR = "David Büchner"
 AUTHOR_EMAIL = "david@it-buechner.de"
 DESCRIPTION = "Telegram Bot for the OpenAI API"
 
-TODO: web crawling, activate window method
+TODO: web crawling, activate window method, document translation, if more users import asyncio and use locking anywhere
 """
 
 import logging

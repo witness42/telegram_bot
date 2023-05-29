@@ -132,13 +132,6 @@ def restart(message):
     else:
         bot.reply_to(message, "You are not allowed to use this command!")
 
-@bot.message_handler(commands=['getuserid'])
-def get_user_id(message):
-    if message.from_user.id in allowed_users:
-        bot.reply_to(message, f"{message.from_user.id}")
-    else:
-        log_unrestricted(message)
-
 
 @bot.message_handler(commands=[PERSONA_NAME])
 def send_message(message, transcript = None):
@@ -343,7 +336,10 @@ def log_unrestricted(message):
 
 @bot.message_handler(func=lambda message: True)
 def handle_default(message):
-    send_message(message)
+    if message.forward_from is not None:
+        bot.reply_to(message, message.forward_from)
+    else:
+        send_message(message)
 
 """ Create lock dir """
 def lock():

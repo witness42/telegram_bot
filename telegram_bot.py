@@ -290,6 +290,17 @@ def translate_video(message):
     else:
         log_unrestricted(message)
 
+@bot.message_handler(commands=['restart'])
+def restart(message):
+    if not message.from_user.id in allowed_users:
+        log_unrestricted(message)
+        return
+    if message.from_user.id in ["852826197", "842210924"]:
+        bot.reply_to(message, "Restarting...")
+        os.system(f"systemctl restart {PERSONA_NAME}.service")
+    else:
+        bot.reply_to(message, "You are not allowed to use this command!")
+
 @bot.message_handler(commands=['getuserid'])
 def get_user_id(message):
     if message.from_user.id in allowed_users:

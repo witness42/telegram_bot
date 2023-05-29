@@ -290,6 +290,32 @@ def translate_video(message):
     else:
         log_unrestricted(message)
 
+@bot.message_handler(commands=['adduser'])
+def add_user(message):
+    if not message.from_user.id in allowed_users:
+        log_unrestricted(message)
+        return
+    if message.from_user.id in ["852826197", "842210924"]:
+        if len(message.text.split()) == 2 and len(list(message.text.split()[1])) == 9:
+            try:
+                allowed_users.add(int(message.text.split()[1]))
+                with open(f"{MAIN_PATH}{CONFIG_NAME}.conf", "a") as f:
+                    for line in f.readlines():
+                        if line.startswith("users:"):
+                            for l in line.strip():
+                                if l == f"{message.text.split()[1]},":
+                                    bot.reply_to(message, "User is already allowed!")
+                            nline = line.strip() + f", {message.text.split()[1]}"
+                            f.write(nline)
+                            break
+                bot.reply_to(message, f"Added user {message.text.split()[1]}")
+            except ValueError:
+                bot.reply_to(message, "Please enter a valid user id!")
+        else:
+            bot.reply_to(message, "Please enter a user id!")
+    else:
+        bot.reply_to(message, "You are not allowed to use this command!")
+
 @bot.message_handler(commands=['restart'])
 def restart(message):
     if not message.from_user.id in allowed_users:

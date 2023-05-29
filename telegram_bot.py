@@ -290,6 +290,13 @@ def translate_video(message):
     else:
         log_unrestricted(message)
 
+@bot.message_handler(commands=['getuserid'])
+def get_user_id(message):
+    if message.from_user.id in allowed_users:
+        bot.reply_to(message, f"{message.from_user.id}")
+    else:
+        log_unrestricted(message)
+
 
 def log_unrestricted(message):
     if message.from_user.id not in already_restriced_users:

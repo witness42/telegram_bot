@@ -107,15 +107,20 @@ def add_user(message):
         if len(message.text.split()) == 2 and len(list(message.text.split()[1])) == 9:
             try:
                 allowed_users.add(int(message.text.split()[1]))
-                with open(f"{MAIN_PATH}{CONFIG_NAME}.conf", "a") as f:
+                new_file = []
+                with open(f"{MAIN_PATH}{CONFIG_NAME}.conf", "r") as f:
                     for line in f.readlines():
                         if line.startswith("users:"):
-                            for l in line.strip():
+                            for l in line.replace("\n", ",").split():
                                 if l == f"{message.text.split()[1]},":
                                     bot.reply_to(message, "User is already allowed!")
+                                    return
                             nline = line.strip() + f", {int(message.text.split()[1])}"
-                            f.write(nline)
-                            break
+                            new_file.append(nline)
+                        else:
+                            new_file.append(line)
+                with open(f"{MAIN_PATH}{CONFIG_NAME}.conf", "w") as f:
+                    f.writelines(new_file)
                 bot.reply_to(message, f"Added user {message.text.split()[1]}")
             except ValueError as e:
                 bot.reply_to(message, "Please enter a valid user id!")

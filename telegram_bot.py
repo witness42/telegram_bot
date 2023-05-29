@@ -103,6 +103,7 @@ def send_message(message, transcript = None):
         start_time = time.time()
         if transcript is not None:
             message.text = transcript
+            logging.info("Voice processed message:")
         logging.info(f"{message.from_user.first_name}({message.from_user.id}): {message.text}")
         if user_context.get(message.from_user.id, None) is None:
             user_context[message.from_user.id] = Context(message.from_user.id)
@@ -279,8 +280,10 @@ def translate_video(message):
 
             response = requests.post(url, data=payload, headers=headers)
             res = json.loads(response.text)
+            logging.info(f"Translated video text for {message.from_user.first_name}({message.from_user.id}): {res['translations'][0]['text']}")
             bot.reply_to(message, res["translations"][0]["text"])
         else:
+            logging.info(f"Translated video text for {message.from_user.first_name}({message.from_user.id}): {transcript['text']}")
             bot.reply_to(message, transcript["text"])
         stop_time = time.time()
         logging.info("time taken for video translation: " + str(round(start_time - stop_time, 2)) + " seconds")

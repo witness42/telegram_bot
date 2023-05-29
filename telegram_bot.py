@@ -277,10 +277,6 @@ def make_variation(message):
     else:
         log_unrestricted(message)
 
-@bot.message_handler(func=lambda message: True)
-def on_reply(message):
-    send_message(message)
-
 @bot.message_handler(content_types=['voice'])
 def voice_processing(message):
     if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
@@ -344,6 +340,10 @@ def log_unrestricted(message):
         time.sleep(1)
     logging.warning(str(message))
     remove_lock()
+
+@bot.message_handler(func=lambda message: True)
+def handle_default(message):
+    send_message(message)
 
 """ Create lock dir """
 def lock():

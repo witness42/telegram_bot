@@ -111,12 +111,13 @@ def add_user(message):
                             for l in line.strip():
                                 if l == f"{message.text.split()[1]},":
                                     bot.reply_to(message, "User is already allowed!")
-                            nline = line.strip() + f", {message.text.split()[1]}"
+                            nline = line.strip() + f", {int(message.text.split()[1])}"
                             f.write(nline)
                             break
                 bot.reply_to(message, f"Added user {message.text.split()[1]}")
-            except ValueError:
+            except ValueError as e:
                 bot.reply_to(message, "Please enter a valid user id!")
+                bot.reply_to(message, e)
         else:
             bot.reply_to(message, "Please enter a user id!")
     else:

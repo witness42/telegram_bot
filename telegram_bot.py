@@ -55,13 +55,16 @@ ENCODING = tiktoken.encoding_for_model(MODEL)
 
 bot = telebot.TeleBot(config.get("telegram", "token"))
 
-logging.info(f'{bot.user.username} is ready!')
 
 user_context = {}
 admins = set([int(x) for x in config.get("acl", "admins").split(",")])
 allowed_users = set([int(x) for x in config.get("acl", "users").split(",")])
 allowed_groups = set([int(x) for x in config.get("acl", "groups").split(",")])
 already_restriced_users = set()
+
+for admin in admins:
+    bot.send_message(admin, f'{bot.user.username} is ready!')
+logging.info(f'{bot.user.username} is ready!')
 
 class Context:
     def __init__(self, user_id):

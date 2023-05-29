@@ -62,6 +62,8 @@ allowed_users = set([int(x) for x in config.get("acl", "users").split(",")])
 allowed_groups = set([int(x) for x in config.get("acl", "groups").split(",")])
 already_restriced_users = set()
 
+for admin in admins:
+    bot.send_message(admin, f"{PERSONA_NAME} is online!")
 logging.info(f'{bot.user.username} is ready!')
 
 class Context:

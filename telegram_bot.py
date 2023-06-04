@@ -141,6 +141,38 @@ def restart(message):
     else:
         bot.reply_to(message, "You are not allowed to use this command!")
 
+@bot.message_handler(commands=['stop'])
+def stop(message):
+    if not message.from_user.id in allowed_users:
+        log_unrestricted(message)
+        return
+    if message.from_user.id in admins:
+        bot.reply_to(message, "Stopping...")
+        os.system(f"systemctl stop {PERSONA_NAME}.service")
+    else:
+        bot.reply_to(message, "You are not allowed to use this command!")
+
+@bot.message_handler(commands=['reboot'])
+def reboot(message):
+    if not message.from_user.id in allowed_users:
+        log_unrestricted(message)
+        return
+    if message.from_user.id in admins:
+        bot.reply_to(message, "Rebooting...")
+        os.system("systemctl reboot")
+    else:
+        bot.reply_to(message, "You are not allowed to use this command!")
+
+@bot.message_handler(commands=['ping'])
+def ping(message):
+    if not message.from_user.id in allowed_users:
+        log_unrestricted(message)
+        return
+    if message.from_user.id in admins:
+        bot.reply_to(message, "Pong!")
+    else:
+        bot.reply_to(message, "You are not allowed to use this command!")
+
 
 @bot.message_handler(commands=[PERSONA_NAME])
 def send_message(message, transcript = None):
@@ -370,6 +402,14 @@ def translate_video(message):
         log_unrestricted(message)
 
 
+@bot.message_handler(func=lambda message: True)
+def handle_default(message):
+    if message.forward_from is not None:
+        if message.from_user.id in admins:
+            bot.reply_to(message, message.forward_from)
+    else:
+        send_message(message)
+
 def log_unrestricted(message):
     if message.from_user.id not in already_restriced_users:
         bot.reply_to(message, "You are not allowed to use me! You can ask https://t.me/earth_down for permission. Your user meta data and all messages are logged!")
@@ -379,14 +419,6 @@ def log_unrestricted(message):
     logging.warning(str(message))
     remove_lock()
     debug_msg("A stranger tried to use me:\n" + str(message))
-
-@bot.message_handler(func=lambda message: True)
-def handle_default(message):
-    if message.forward_from is not None:
-        if message.from_user.id in admins:
-            bot.reply_to(message, message.forward_from)
-    else:
-        send_message(message)
 
 def debug_msg(msg: str) -> None:
     if DEBUG:

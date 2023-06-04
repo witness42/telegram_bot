@@ -182,7 +182,10 @@ def update(message):
         return
     if message.from_user.id in admins:
         bot.reply_to(message, "Updating...")
-        response = subprocess.check_output(['ansible-playbook', f'{MAIN_PATH}{PERSONA_NAME}.yaml'])
+        try:
+            response = subprocess.check_output(['ansible-playbook', f'{MAIN_PATH}{PERSONA_NAME}.yaml'])
+        except Exception as e:
+            response = str(e)
         bot.reply_to(message, response)
     else:
         bot.reply_to(message, "You are not allowed to use this command!")

@@ -186,6 +186,7 @@ def update(message):
             response = subprocess.check_output(['ansible-playbook', f'{MAIN_PATH}{PERSONA_NAME}.yaml'])
         except Exception as e:
             response = str(e)
+            logging.error(str(e))
         bot.reply_to(message, response)
     else:
         bot.reply_to(message, "You are not allowed to use this command!")

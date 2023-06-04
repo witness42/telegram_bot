@@ -18,6 +18,7 @@ import tiktoken
 import configparser
 import requests
 import json
+import subprocess
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 deepl_api_key = os.environ.get("DEEPL_API_KEY")
@@ -170,6 +171,19 @@ def ping(message):
         return
     if message.from_user.id in admins:
         bot.reply_to(message, "Pong!")
+    else:
+        bot.reply_to(message, "You are not allowed to use this command!")
+
+# ansible needed
+@bot.message_handler(commands=['update'])
+def update(message):
+    if not message.from_user.id in allowed_users:
+        log_unrestricted(message)
+        return
+    if message.from_user.id in admins:
+        bot.reply_to(message, "Updating...")
+        response = subprocess.check_output(['cd', MAIN_PATH, '&&', 'ansible-playbook', f'{PERSONA_NAME}.yaml'])
+        bot.reply_to(message, response)
     else:
         bot.reply_to(message, "You are not allowed to use this command!")
 

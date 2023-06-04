@@ -4,7 +4,7 @@ AUTHOR = "David Büchner"
 AUTHOR_EMAIL = "david@it-buechner.de"
 DESCRIPTION = "Telegram Bot for the OpenAI API"
 
-TODO: web crawling, activate window method, document translation, if more users import asyncio and use locking anywhere
+TODO: web crawling, activate window method, document translation, if more users import asyncio and use locking everywhere
 """
 
 import logging
@@ -22,7 +22,7 @@ import json
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 deepl_api_key = os.environ.get("DEEPL_API_KEY")
 
-if (len(sys.argv) != 3):
+if len(sys.argv) != 3:
     print("Usage: python3.9 telegram_bot.py <main_folder_path>(e.g. /home/dummyuser/shitty_telegram_bot/) <config_name> (e.g. shitty_telegram_bot)")
     sys.exit(1)
 MAIN_PATH = sys.argv[1]
@@ -37,6 +37,8 @@ LOG_LEVELS = {None: logging.DEBUG, "debug": logging.DEBUG, "info": logging.INFO,
 LOG_LEVEL = LOG_LEVELS[config.get("log", "level", fallback=None)]
 logging.basicConfig(filename=f"{MAIN_PATH}odin.log", level=LOG_LEVEL,
                             format="%(asctime)s [%(levelname)-8s] %(process)d %(module)s (%(lineno)d): %(message)s")
+
+DEBUG = config.getboolean("log", "debug")
 
 LOCK_DIR = config.get("lock", "dir")
 
@@ -62,8 +64,6 @@ allowed_users = set([int(x) for x in config.get("acl", "users").split(",")])
 allowed_groups = set([int(x) for x in config.get("acl", "groups").split(",")])
 already_restriced_users = set()
 
-for admin in admins:
-    bot.send_message(admin, f"{bot.user.username} is online!")
 logging.info(f'{bot.user.username} is ready!')
 
 class Context:
@@ -197,17 +197,25 @@ def send_message(message, transcript = None):
             remove_lock()
             bot.reply_to(message, output['content'], parse_mode='Markdown')
         except telebot.apihelper.ApiTelegramException as e:
-            logging.error(str(e))
+            error = f"Error while generating chat response: {str(e)}"
+            logging.error(error)
+            bot.reply_to(message, error)
+            debug_msg(error)
+            remove_lock()
             try:
                 bot.reply_to(message, output['content'])
             except Exception as e:
-                logging.error(f"second try due to {str(e)}")
+                error = f"second try due to {str(e)}"
+                logging.error(error)
+                bot.reply_to(message, error)
+                debug_msg(error)
                 remove_lock()
-                bot.reply_to(message, ERROR_MSG)
         except Exception as e:
-            logging.error(str(e))
+            error = f"Error while generating chat response: {str(e)}"
+            logging.error(error)
+            bot.reply_to(message, error)
+            debug_msg(error)
             remove_lock()
-            bot.reply_to(message, ERROR_MSG)
     else:
         log_unrestricted(message)
 
@@ -215,26 +223,34 @@ def send_message(message, transcript = None):
 def generate(message):
     if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
         start_time = time.time()
-        if message.text[10:] == "":
-            bot.reply_to(message, "Please enter a prompt for the image generation")
-            return
-        bot.reply_to(message, "Your image is being drawn...")
-        logging.info(f"{message.from_user.first_name}({message.from_user.id}): Image generation message({message.text[10:]})")
         try:
-            response = openai.Image.create(
-                prompt=message.text[10:],
-                api_key=openai.api_key,
-                n=NUM_IMAGES,
-                size="1024x1024"
-            )
-            image_url = response['data'][0]['url']
-            response = requests.get(image_url)
-            stop_time = time.time()
-            logging.info("time taken for image generation: " + str(round(start_time - stop_time, 2)) + " seconds")
-            bot.send_photo(message.chat.id, response.content, caption=message.text[10:] + "\ntime taken for image generation: " + str(round(start_time - stop_time, 2)) + " seconds")
-        except openai.error.OpenAIError as e:
-            logging.error(f"HTTP STATUS: {e.http_status}, ERROR: {e.error}")
-            bot.reply_to(message, str(e.error))
+            if message.text[10:] == "":
+                bot.reply_to(message, "Please enter a prompt for the image generation")
+                return
+            bot.reply_to(message, "Your image is being drawn...")
+            logging.info(f"{message.from_user.first_name}({message.from_user.id}): Image generation message({message.text[10:]})")
+            try:
+                response = openai.Image.create(
+                    prompt=message.text[10:],
+                    api_key=openai.api_key,
+                    n=NUM_IMAGES,
+                    size="1024x1024"
+                )
+                image_url = response['data'][0]['url']
+                response = requests.get(image_url)
+                stop_time = time.time()
+                logging.info("time taken for image generation: " + str(round(start_time - stop_time, 2)) + " seconds")
+                bot.send_photo(message.chat.id, response.content, caption=message.text[10:] + "\ntime taken for image generation: " + str(round(start_time - stop_time, 2)) + " seconds")
+            except openai.error.OpenAIError as e:
+                error = f"HTTP STATUS: {e.http_status}, ERROR: {e.error}"
+                logging.error(error)
+                bot.reply_to(message, error)
+                debug_msg(error)
+        except Exception as e:
+            error = f"Error while generating image: {str(e)}"
+            logging.error(error)
+            bot.reply_to(message, error)
+            debug_msg(error)
     else:
         log_unrestricted(message)
 
@@ -244,38 +260,46 @@ def make_variation(message):
         start_time = time.time()
         if message.caption not in ["make variation", "make variations", "m"]: # m is a shortcut
             return
-        if message.caption == "make variations":
-            more_images = True
-            if NUM_IMAGES > 4:
-                more_images = False
-            bot.reply_to(message, "Generating variations...")
-        else:
-            if NUM_IMAGES > 1:
+        try:
+            if message.caption == "make variations":
+                more_images = True
+                if NUM_IMAGES > 4:
+                    more_images = False
                 bot.reply_to(message, "Generating variations...")
             else:
-                bot.reply_to(message, "Generating variation...")
-            more_images = False
-        file_id = message.photo[-1].file_id
-        file = bot.get_file(file_id)
-        downloaded_file = bot.download_file(file.file_path)
-        with open(f"{MAIN_PATH}image.png", 'wb') as new_file:
-            new_file.write(downloaded_file)
-        os.system(f"convert {MAIN_PATH}image.png -resize 1024x1024 {MAIN_PATH}image.png")
-        try:
-            response = openai.Image.create_variation(
-                image=open(f"{MAIN_PATH}image.png", "rb"),
-                n=4 if more_images else NUM_IMAGES,
-                size="1024x1024"
-            )
-            image_url = response['data'][0]['url']
-            response = requests.get(image_url)
-            os.remove(f"{MAIN_PATH}image.png")
-            stop_time = time.time()
-            logging.info("time taken for image generation: " + str(round(start_time - stop_time, 2)) + " seconds")
-            bot.send_photo(message.chat.id, response.content, caption="\ntime taken for image generation: " + str(round(start_time - stop_time, 2)) + " seconds")
-        except openai.error.OpenAIError as e:
-            logging.error(f"HTTP STATUS: {e.http_status}, ERROR: {e.error}")
-            bot.reply_to(message, str(e.error))
+                if NUM_IMAGES > 1:
+                    bot.reply_to(message, "Generating variations...")
+                else:
+                    bot.reply_to(message, "Generating variation...")
+                more_images = False
+            file_id = message.photo[-1].file_id
+            file = bot.get_file(file_id)
+            downloaded_file = bot.download_file(file.file_path)
+            with open(f"{MAIN_PATH}image.png", 'wb') as new_file:
+                new_file.write(downloaded_file)
+            os.system(f"convert {MAIN_PATH}image.png -resize 1024x1024 {MAIN_PATH}image.png")
+            try:
+                response = openai.Image.create_variation(
+                    image=open(f"{MAIN_PATH}image.png", "rb"),
+                    n=4 if more_images else NUM_IMAGES,
+                    size="1024x1024"
+                )
+                image_url = response['data'][0]['url']
+                response = requests.get(image_url)
+                os.remove(f"{MAIN_PATH}image.png")
+                stop_time = time.time()
+                logging.info("time taken for image generation: " + str(round(start_time - stop_time, 2)) + " seconds")
+                bot.send_photo(message.chat.id, response.content, caption="\ntime taken for image generation: " + str(round(start_time - stop_time, 2)) + " seconds")
+            except openai.error.OpenAIError as e:
+                error = f"HTTP STATUS: {e.http_status}, ERROR: {e.error}"
+                logging.error(error)
+                bot.reply_to(message, error)
+                debug_msg(error)
+        except Exception as e:
+            error = f"Error while making variation: {str(e)}"
+            logging.error(error)
+            bot.reply_to(message, error)
+            debug_msg(error)
     else:
         log_unrestricted(message)
 
@@ -283,16 +307,22 @@ def make_variation(message):
 def voice_processing(message):
     if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
         start_time = time.time()
-        file_info = bot.get_file(message.voice.file_id)
-        downloaded_file = bot.download_file(file_info.file_path)
-        with open(f"{MAIN_PATH}new_file.ogg", 'wb') as audio_file:
-            audio_file.write(downloaded_file)
-        os.system(f"ffmpeg -i {MAIN_PATH}new_file.ogg -codec:a libmp3lame -qscale:a 2 {MAIN_PATH}new_file.mp3")
-        with open(f"{MAIN_PATH}new_file.mp3", 'rb') as audio_file:
-            transcript = openai.Audio.transcribe("whisper-1", audio_file)
-            send_message(message, transcript["text"])
-        os.system(f"mv {MAIN_PATH}new_file.mp3 {MAIN_PATH}recordings/{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.mp3")
-        os.remove(f"{MAIN_PATH}new_file.ogg")
+        try:
+            file_info = bot.get_file(message.voice.file_id)
+            downloaded_file = bot.download_file(file_info.file_path)
+            with open(f"{MAIN_PATH}new_file.ogg", 'wb') as audio_file:
+                audio_file.write(downloaded_file)
+            os.system(f"ffmpeg -i {MAIN_PATH}new_file.ogg -codec:a libmp3lame -qscale:a 2 {MAIN_PATH}new_file.mp3")
+            with open(f"{MAIN_PATH}new_file.mp3", 'rb') as audio_file:
+                transcript = openai.Audio.transcribe("whisper-1", audio_file)
+                send_message(message, transcript["text"])
+            os.system(f"mv {MAIN_PATH}new_file.mp3 {MAIN_PATH}recordings/{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.mp3")
+            os.remove(f"{MAIN_PATH}new_file.ogg")
+        except Exception as e:
+            error = f"Error while processing audio: {str(e)}"
+            logging.error(error)
+            bot.reply_to(message, error)
+            debug_msg(error)
         stop_time = time.time()
         logging.info("time taken for voice processing: " + str(round(start_time - stop_time, 2)) + " seconds")
     else:
@@ -304,30 +334,36 @@ def translate_video(message):
         start_time = time.time()
         if message.caption.lower() not in ["translate", "t", "translate to german", "tg"]: # t is a shortcut
             return
-        bot.reply_to(message, "Translating video...")
-        file_info = bot.get_file(message.video.file_id)
-        downloaded_file = bot.download_file(file_info.file_path)
-        with open(f"{MAIN_PATH}video.mp4", 'wb') as video_file:
-            video_file.write(downloaded_file)
-        os.system(f"ffmpeg -i {MAIN_PATH}video.mp4 {MAIN_PATH}audio.mp3")
-        os.remove(f"{MAIN_PATH}video.mp4")
-        with open(f"{MAIN_PATH}audio.mp3", 'rb') as audio_file:
-            transcript = openai.Audio.translate("whisper-1", audio_file)
-        os.remove(f"{MAIN_PATH}audio.mp3")
-        if message.caption.lower() in ["tg", "translate to german"]:
-            url = 'https://api-free.deepl.com/v2/translate'
-            payload = {'text': transcript["text"], 'target_lang': 'DE'}
-            headers = {'Authorization': "DeepL-Auth-Key " + deepl_api_key,
-                       'User-Agent': 'YourApp/1.2.3',
-                       'Content-Type': 'application/x-www-form-urlencoded'}
+        try:
+            bot.reply_to(message, "Translating video...")
+            file_info = bot.get_file(message.video.file_id)
+            downloaded_file = bot.download_file(file_info.file_path)
+            with open(f"{MAIN_PATH}video.mp4", 'wb') as video_file:
+                video_file.write(downloaded_file)
+            os.system(f"ffmpeg -i {MAIN_PATH}video.mp4 {MAIN_PATH}audio.mp3")
+            os.remove(f"{MAIN_PATH}video.mp4")
+            with open(f"{MAIN_PATH}audio.mp3", 'rb') as audio_file:
+                transcript = openai.Audio.translate("whisper-1", audio_file)
+            os.remove(f"{MAIN_PATH}audio.mp3")
+            if message.caption.lower() in ["tg", "translate to german"]:
+                url = 'https://api-free.deepl.com/v2/translate'
+                payload = {'text': transcript["text"], 'target_lang': 'DE'}
+                headers = {'Authorization': "DeepL-Auth-Key " + deepl_api_key,
+                           'User-Agent': 'YourApp/1.2.3',
+                           'Content-Type': 'application/x-www-form-urlencoded'}
 
-            response = requests.post(url, data=payload, headers=headers)
-            res = json.loads(response.text)
-            logging.info(f"Translated video text for {message.from_user.first_name}({message.from_user.id}): {res['translations'][0]['text']}")
-            bot.reply_to(message, res["translations"][0]["text"])
-        else:
-            logging.info(f"Translated video text for {message.from_user.first_name}({message.from_user.id}): {transcript['text']}")
-            bot.reply_to(message, transcript["text"])
+                response = requests.post(url, data=payload, headers=headers)
+                res = json.loads(response.text)
+                logging.info(f"Translated video text for {message.from_user.first_name}({message.from_user.id}): {res['translations'][0]['text']}")
+                bot.reply_to(message, res["translations"][0]["text"])
+            else:
+                logging.info(f"Translated video text for {message.from_user.first_name}({message.from_user.id}): {transcript['text']}")
+                bot.reply_to(message, transcript["text"])
+        except Exception as e:
+            error = f"Error while translating video: {str(e)}"
+            logging.error(error)
+            bot.reply_to(message, error)
+            debug_msg(error)
         stop_time = time.time()
         logging.info("time taken for video translation: " + str(round(start_time - stop_time, 2)) + " seconds")
     else:
@@ -342,6 +378,7 @@ def log_unrestricted(message):
         time.sleep(1)
     logging.warning(str(message))
     remove_lock()
+    debug_msg("A stranger tried to use me:\n" + str(message))
 
 @bot.message_handler(func=lambda message: True)
 def handle_default(message):
@@ -350,6 +387,11 @@ def handle_default(message):
             bot.reply_to(message, message.forward_from)
     else:
         send_message(message)
+
+def debug_msg(msg: str) -> None:
+    if DEBUG:
+        for admin in admins:
+            bot.send_message(admin, msg)
 
 """ Create lock dir """
 def lock():
@@ -367,4 +409,5 @@ def remove_lock():
     except Exception as e:
         logging.critical(f"Cannot delete lock dir '{LOCK_DIR}': {e}")
 
+# Start bot
 bot.polling()

@@ -11,6 +11,7 @@ import logging
 import os
 import sys
 import time
+import uuid
 import datetime
 import telebot
 import openai
@@ -428,18 +429,19 @@ def make_variation(message):
             file_id = message.photo[-1].file_id
             file = bot.get_file(file_id)
             downloaded_file = bot.download_file(file.file_path)
-            with open(f"{MAIN_PATH}image.png", 'wb') as new_file:
-                new_file.write(downloaded_file)
-            os.system(f"convert {MAIN_PATH}image.png -resize 1024x1024 {MAIN_PATH}image.png")
+            image_uuid = str(uuid.uuid4())
+            with open(f"{MAIN_PATH}{image_uuid}.png", 'wb') as image:
+                image.write(downloaded_file)
+            os.system(f"convert {MAIN_PATH}{image_uuid}.png -resize 1024x1024 {MAIN_PATH}{image_uuid}.png")
             try:
                 response = openai.Image.create_variation(
-                    image=open(f"{MAIN_PATH}image.png", "rb"),
+                    image=open(f"{MAIN_PATH}{image_uuid}.png", "rb"),
                     n=4 if more_images else NUM_IMAGES,
                     size="1024x1024"
                 )
                 image_url = response['data'][0]['url']
                 response = requests.get(image_url)
-                os.remove(f"{MAIN_PATH}image.png")
+                os.remove(f"{MAIN_PATH}{image_uuid}.png")
                 stop_time = time.time()
                 logging.info("time taken for image generation: " + str(round(start_time - stop_time, 2)) + " seconds")
                 bot.send_photo(message.chat.id, response.content, caption="\ntime taken for image generation: " + str(round(start_time - stop_time, 2)) + " seconds")
@@ -464,14 +466,15 @@ def voice_processing(message):
         try:
             file_info = bot.get_file(message.voice.file_id)
             downloaded_file = bot.download_file(file_info.file_path)
-            with open(f"{MAIN_PATH}new_file.ogg", 'wb') as audio_file:
+            audio_uuid = str(uuid.uuid4())
+            with open(f"{MAIN_PATH}{audio_uuid}.ogg", 'wb') as audio_file:
                 audio_file.write(downloaded_file)
-            os.system(f"ffmpeg -i {MAIN_PATH}new_file.ogg -codec:a libmp3lame -qscale:a 2 {MAIN_PATH}new_file.mp3")
-            with open(f"{MAIN_PATH}new_file.mp3", 'rb') as audio_file:
+            os.system(f"ffmpeg -i {MAIN_PATH}{audio_uuid}.ogg -codec:a libmp3lame -qscale:a 2 {MAIN_PATH}{audio_uuid}.mp3")
+            with open(f"{MAIN_PATH}{audio_uuid}.mp3", 'rb') as audio_file:
                 transcript = openai.Audio.transcribe("whisper-1", audio_file)
                 send_message(message, transcript["text"])
-            os.system(f"mv {MAIN_PATH}new_file.mp3 {MAIN_PATH}recordings/{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.mp3")
-            os.remove(f"{MAIN_PATH}new_file.ogg")
+            os.system(f"mv {MAIN_PATH}{audio_uuid}.mp3 {MAIN_PATH}recordings/{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.mp3")
+            os.remove(f"{MAIN_PATH}{audio_uuid}.ogg")
         except Exception as e:
             error = f"Error while processing audio: {str(e)}"
             logging.error(error)
@@ -493,13 +496,15 @@ def translate_video(message):
             bot.reply_to(message, "Translating video...")
             file_info = bot.get_file(message.video.file_id)
             downloaded_file = bot.download_file(file_info.file_path)
-            with open(f"{MAIN_PATH}video.mp4", 'wb') as video_file:
+            file_uuid = str(uuid.uuid4())
+            with open(f"{MAIN_PATH}{file_uuid}.mp4", 'wb') as video_file:
                 video_file.write(downloaded_file)
-            os.system(f"ffmpeg -i {MAIN_PATH}video.mp4 {MAIN_PATH}audio.mp3")
-            os.remove(f"{MAIN_PATH}video.mp4")
-            with open(f"{MAIN_PATH}audio.mp3", 'rb') as audio_file:
+            os.system(f"ffmpeg -i {MAIN_PATH}{file_uuid}.mp4 {MAIN_PATH}{file_uuid}.mp3")
+            os.remove(f"{MAIN_PATH}{file_uuid}.mp4")
+
+            with open(f"{MAIN_PATH}{file_uuid}.mp3", 'rb') as audio_file:
                 transcript = openai.Audio.translate("whisper-1", audio_file)
-            os.remove(f"{MAIN_PATH}audio.mp3")
+            os.remove(f"{MAIN_PATH}{file_uuid}.mp3")
             if message.caption.lower() in ["tg", "translate to german"]:
                 url = 'https://api-free.deepl.com/v2/translate'
                 payload = {'text': transcript["text"], 'target_lang': 'DE'}

@@ -38,7 +38,7 @@ LOG_LEVELS = {None: logging.DEBUG, "debug": logging.DEBUG, "info": logging.INFO,
               "error": logging.ERROR, "critical": logging.CRITICAL}
 LOG_LEVEL = LOG_LEVELS[config.get("log", "level", fallback=None)]
 logging.basicConfig(filename=f"{MAIN_PATH}odin.log", level=LOG_LEVEL,
-                            format="%(asctime)s [%(levelname)-8s] %(process)d %(module)s (%(lineno)d): %(message)s")
+                    format="%(asctime)s [%(levelname)-8s] %(process)d %(module)s (%(lineno)d): %(message)s")
 
 DEBUG = config.getboolean("log", "debug")
 
@@ -48,7 +48,7 @@ PERSONA_NAME = config.get("persona", "name")
 SYSTEM_MSG = config.get("persona", "system")
 WELCOME_MSG = config.get("persona", "welcome")
 FORGET_MSG = config.get("persona", "forget")
-NUM_IMAGES = int(config.get("persona", "num_images")) # [1, 10]
+NUM_IMAGES = int(config.get("persona", "num_images"))  # [1, 10]
 NOT_FORGOTTEN_MSG = config.get("persona", "notforgotten")
 ERROR_MSG = config.get("persona", "error")
 
@@ -59,7 +59,6 @@ ENCODING = tiktoken.encoding_for_model(MODEL)
 
 bot = telebot.TeleBot(config.get("telegram", "token"))
 
-
 user_context = {}
 subscribed_users = set([int(x) for x in config.get("acl", "subscribed").split(",")])
 admins = set([int(x) for x in config.get("acl", "admins").split(",")])
@@ -69,6 +68,7 @@ allowed_groups = set([int(x) for x in config.get("acl", "groups").split(",")])
 already_restriced_users = set()
 
 logging.info(f'{bot.user.username} is ready!')
+
 
 class Context:
     def __init__(self, user_id):
@@ -139,6 +139,7 @@ def send_logs(message):
     else:
         bot.reply_to(message, "You are not allowed to use this command!")
 
+
 @bot.message_handler(commands=['adduser'])
 def add_user(message):
     if not message.from_user.id in allowed_users:
@@ -170,6 +171,7 @@ def add_user(message):
             bot.reply_to(message, "Please enter a user id!")
     else:
         bot.reply_to(message, "You are not allowed to use this command!")
+
 
 @bot.message_handler(commands=['removeuser'])
 def remove_user(message):
@@ -205,6 +207,7 @@ def remove_user(message):
     else:
         bot.reply_to(message, "You are not allowed to use this command!")
 
+
 @bot.message_handler(commands=['restart'])
 def restart(message):
     if not message.from_user.id in allowed_users:
@@ -215,6 +218,7 @@ def restart(message):
         os.system(f"systemctl restart {PERSONA_NAME}.service")
     else:
         bot.reply_to(message, "You are not allowed to use this command!")
+
 
 @bot.message_handler(commands=['stop'])
 def stop(message):
@@ -227,6 +231,7 @@ def stop(message):
     else:
         bot.reply_to(message, "You are not allowed to use this command!")
 
+
 @bot.message_handler(commands=['reboot'])
 def reboot(message):
     if not message.from_user.id in allowed_users:
@@ -238,6 +243,7 @@ def reboot(message):
     else:
         bot.reply_to(message, "You are not allowed to use this command!")
 
+
 @bot.message_handler(commands=['ping'])
 def ping(message):
     if not message.from_user.id in allowed_users:
@@ -247,6 +253,7 @@ def ping(message):
         bot.reply_to(message, "Pong!")
     else:
         bot.reply_to(message, "You are not allowed to use this command!")
+
 
 # ansible needed
 # not working yet
@@ -266,6 +273,7 @@ def update(message):
     else:
         bot.reply_to(message, "You are not allowed to use this command!")
 
+
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
     if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
@@ -283,8 +291,9 @@ def clear_context(message):
     else:
         log_unrestricted(message)
 
+
 @bot.message_handler(commands=[PERSONA_NAME])
-def send_message(message, transcript = None):
+def send_message(message, transcript=None):
     if message.chat.type == "group" and transcript is None:
         return
     if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
@@ -360,6 +369,7 @@ def send_message(message, transcript = None):
     else:
         log_unrestricted(message)
 
+
 @bot.message_handler(commands=['generate'])
 def generate(message):
     if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
@@ -395,11 +405,12 @@ def generate(message):
     else:
         log_unrestricted(message)
 
+
 @bot.message_handler(content_types=['photo'])
 def make_variation(message):
     if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
         start_time = time.time()
-        if message.caption not in ["make variation", "make variations", "m"]: # m is a shortcut
+        if message.caption not in ["make variation", "make variations", "m"]:  # m is a shortcut
             return
         try:
             if message.caption == "make variations":
@@ -444,6 +455,7 @@ def make_variation(message):
     else:
         log_unrestricted(message)
 
+
 @bot.message_handler(content_types=['voice'])
 def voice_processing(message):
     if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
@@ -469,11 +481,12 @@ def voice_processing(message):
     else:
         log_unrestricted(message)
 
+
 @bot.message_handler(content_types=['video'])
 def translate_video(message):
     if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
         start_time = time.time()
-        if message.caption.lower() not in ["translate", "t", "translate to german", "tg"]: # t is a shortcut
+        if message.caption.lower() not in ["translate", "t", "translate to german", "tg"]:  # t is a shortcut
             return
         try:
             bot.reply_to(message, "Translating video...")
@@ -519,6 +532,7 @@ def handle_default(message):
     else:
         send_message(message)
 
+
 def log_unrestricted(message):
     if message.from_user.id not in already_restriced_users:
         bot.reply_to(message, "You are not allowed to use me! You can ask https://t.me/earth_down for permission. Your user meta data and all messages are logged!")
@@ -529,12 +543,16 @@ def log_unrestricted(message):
     remove_lock()
     debug_msg("A stranger tried to use me:\n" + str(message))
 
+
 def debug_msg(msg: str) -> None:
     if DEBUG:
         for admin in admins:
             bot.send_message(admin, msg)
 
+
 """ Create lock dir """
+
+
 def lock():
     try:
         os.mkdir(LOCK_DIR)
@@ -542,13 +560,17 @@ def lock():
         return False
     return True
 
+
 """ Free lock dir """
+
+
 def remove_lock():
     try:
         if os.path.exists(LOCK_DIR):
             os.rmdir(LOCK_DIR)
     except Exception as e:
         logging.critical(f"Cannot delete lock dir '{LOCK_DIR}': {e}")
+
 
 # Start bot
 bot.polling()

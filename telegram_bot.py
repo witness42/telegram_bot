@@ -99,6 +99,17 @@ def clear_context(message):
     else:
         log_unrestricted(message)
 
+@bot.message_handler(commands=['logs'])
+def send_logs(message):
+    if not message.from_user.id in allowed_users:
+        log_unrestricted(message)
+        return
+    if message.from_user.id in admins:
+        with open(f"{MAIN_PATH}odin.log", "rb") as f:
+            bot.send_document(message.chat.id, f)
+    else:
+        bot.reply_to(message, "You are not allowed to use this command!")
+
 @bot.message_handler(commands=['adduser'])
 def add_user(message):
     if not message.from_user.id in allowed_users:
@@ -175,6 +186,7 @@ def ping(message):
         bot.reply_to(message, "You are not allowed to use this command!")
 
 # ansible needed
+# not working yet
 @bot.message_handler(commands=['update'])
 def update(message):
     if not message.from_user.id in allowed_users:

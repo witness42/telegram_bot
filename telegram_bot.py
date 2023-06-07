@@ -121,6 +121,7 @@ def subscribe(message):
 
         if payment.create():
             for link in payment.links:
+                bot.reply_to(message, link)
                 if link.rel == 'approval_url':
                     bot.send_message(message.chat.id, f"Please approve payment: {link.href}")
             # handle_webhook(payment.id)

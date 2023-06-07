@@ -237,6 +237,22 @@ def update(message):
     else:
         bot.reply_to(message, "You are not allowed to use this command!")
 
+@bot.message_handler(commands=['start', 'help'])
+def send_welcome(message):
+    if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
+        bot.reply_to(message, WELCOME_MSG)
+
+
+@bot.message_handler(commands=['forget'])
+def clear_context(message):
+    if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
+        if user_context.get(message.from_user.id, None) is None:
+            bot.reply_to(message, NOT_FORGOTTEN_MSG)
+            return
+        del user_context[message.from_user.id]
+        bot.reply_to(message, FORGET_MSG)
+    else:
+        log_unrestricted(message)
 
 @bot.message_handler(commands=[PERSONA_NAME])
 def send_message(message, transcript = None):

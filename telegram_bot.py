@@ -549,7 +549,7 @@ def dx(message):
     if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
         try:
             res = random.randint(1, int(message.text.split(" ")[1]))
-            bot.reply_to(message, "Mit einem D" +  message.text.split(" ")[1] + " hast du eine" + str(res) + "gewürfelt!")
+            bot.reply_to(message, "Mit einem D" +  message.text.split(" ")[1] + " hast du eine " + str(res) + " gewürfelt!")
         except:
             bot.reply_to(message, "Usage: /d <number>")
     else:

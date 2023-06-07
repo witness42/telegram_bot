@@ -19,6 +19,7 @@ import configparser
 import requests
 import json
 import subprocess
+import paypalrestsdk
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 deepl_api_key = os.environ.get("DEEPL_API_KEY")
@@ -60,8 +61,10 @@ bot = telebot.TeleBot(config.get("telegram", "token"))
 
 
 user_context = {}
+subscribed_users = set([int(x) for x in config.get("acl", "subscribed").split(",")])
 admins = set([int(x) for x in config.get("acl", "admins").split(",")])
 allowed_users = set([int(x) for x in config.get("acl", "users").split(",")])
+allowed_users = allowed_users.union(subscribed_users)
 allowed_groups = set([int(x) for x in config.get("acl", "groups").split(",")])
 already_restriced_users = set()
 
@@ -82,22 +85,48 @@ class Context:
         self.context.remove(message)
 
 
-@bot.message_handler(commands=['start', 'help'])
-def send_welcome(message):
-    if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
-        bot.reply_to(message, WELCOME_MSG)
+def create_payment_object():
+    paypalrestsdk.configure({
+        "mode": "sandbox",
+        "client_id": os.environ.get("PAYPAL_CLIENT_ID"),
+        "client_secret": os.environ.get("PAYPAL_CLIENT_SECRET")
+    })
+    return paypalrestsdk.Payment(
+        "create_payment_intent",
+        {
+            "intent": "sale",
+            "payer": {
+                "payment_method": "paypal",
+            },
+            "amount": {
+                "total": 10,
+                "currency": "EUR",
+            },
+            "description": f"Subscription Payment for the Telegram Bot: {bot.user.username}",
+            # "redirect_urls": {
+            #     "return_url": "http://www.yourdomain.com/paypal/success/?paymentID=PAY-1234567",
+            #     "cancel_url": "http://www.yourdomain.com/paypal/fail/"
+            # }
+        }
+    )
 
 
-@bot.message_handler(commands=['forget'])
-def clear_context(message):
-    if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
-        if user_context.get(message.from_user.id, None) is None:
-            bot.reply_to(message, NOT_FORGOTTEN_MSG)
-            return
-        del user_context[message.from_user.id]
-        bot.reply_to(message, FORGET_MSG)
-    else:
-        log_unrestricted(message)
+@bot.message_handler(commands=['subscribe'])
+def subscribe(message):
+    if message.from_user.id in admins:
+        if message.from_user.id in allowed_users:
+            bot.reply_to(message, "You are already subscribed!")
+            # return # TODO: remove this comment, after debugging
+        payment = create_payment_object()
+
+        if payment.create():
+            for link in payment.links:
+                if link.rel == 'approval_url':
+                    bot.send_message(message.chat.id, f"Please approve payment: {link.href}")
+            # handle_webhook(payment.id)
+        else:
+            bot.reply_to(message, "Something went wrong with the payment. Please try again later.")
+
 
 @bot.message_handler(commands=['logs'])
 def send_logs(message):

@@ -12,6 +12,7 @@ import os
 import sys
 import time
 import uuid
+import random
 import datetime
 import telebot
 import openai
@@ -526,6 +527,30 @@ def translate_video(message):
             debug_msg(error)
         stop_time = time.time()
         logging.info("time taken for video translation: " + str(round(start_time - stop_time, 2)) + " seconds")
+    else:
+        log_unrestricted(message)
+
+@bot.message_handler(commands=['dice'])
+def dice(message):
+    if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
+        bot.reply_to(message, random.randint(1, 6))
+    else:
+        log_unrestricted(message)
+
+@bot.message_handler(commands=['coin'])
+def coin(message):
+    if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
+        bot.reply_to(message, random.choice(["Kopf", "Zahl"]))
+    else:
+        log_unrestricted(message)
+
+@bot.message_handler(commands=['d'])
+def dx(message):
+    if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
+        try:
+            bot.reply_to(message, random.randint(1, message.text.split("d")[1]))
+        except:
+            bot.reply_to(message, "Usage: /D<number>")
     else:
         log_unrestricted(message)
 

@@ -142,6 +142,40 @@ def add_user(message):
     else:
         bot.reply_to(message, "You are not allowed to use this command!")
 
+@bot.message_handler(commands=['removeuser'])
+def remove_user(message):
+    if not message.from_user.id in allowed_users:
+        log_unrestricted(message)
+        return
+    if message.from_user.id in admins:
+        if len(message.text.split()) == 2 and len(list(message.text.split()[1])) == 9:
+            try:
+                allowed_users.remove(int(message.text.split()[1]))
+                new_file = []
+                with open(f"{MAIN_PATH}{CONFIG_NAME}.conf", "r") as f:
+                    for line in f.readlines():
+                        if line.startswith("users:"):
+                            for l in line.replace("\n", ",").split():
+                                removed = False
+                                if l == f"{message.text.split()[1]},":
+                                    # user found and removed
+                                    bot.reply_to(message, f"User {message.text.split()[1]} removed!")
+                                    continue
+                            if not removed:
+                                bot.reply_to(message, "User could not be found! Was the user allowed before?")
+                        else:
+                            new_file.append(line)
+                with open(f"{MAIN_PATH}{CONFIG_NAME}.conf", "w") as f:
+                    f.writelines(new_file)
+                bot.reply_to(message, f"Added user {message.text.split()[1]}")
+            except ValueError as e:
+                bot.reply_to(message, "Please enter a valid user id!")
+                bot.reply_to(message, e)
+        else:
+            bot.reply_to(message, "Please enter a user id!")
+    else:
+        bot.reply_to(message, "You are not allowed to use this command!")
+
 @bot.message_handler(commands=['restart'])
 def restart(message):
     if not message.from_user.id in allowed_users:

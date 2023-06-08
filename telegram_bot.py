@@ -167,6 +167,7 @@ def add_user(message):
                 with open(f"{MAIN_PATH}{CONFIG_NAME}.conf", "w") as f:
                     f.writelines(new_file)
                 bot.reply_to(message, f"Added user {message.text.split()[1]}")
+                logging.info(f"Added user {message.text.split()[1]}")
             except ValueError as e:
                 bot.reply_to(message, "Please enter a valid user id!")
                 bot.reply_to(message, e)
@@ -199,6 +200,7 @@ def remove_user(message):
                                     # user found and removed
                                     removed = True
                                     bot.reply_to(message, f"User {message.text.split()[1]} removed!")
+                                    logging.info(f"User {message.text.split()[1]} removed!")
                                     if l == split_line[-1]:
                                         nline = list(nline)
                                         nline[-1] = '\n'

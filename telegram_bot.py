@@ -149,6 +149,15 @@ def send_log(message):
     else:
         bot.reply_to(message, "You are not allowed to use this command!")
 
+@bot.message_handler(commands=['recordings'])
+def send_recordings(message):
+    if not message.from_user.id in allowed_users:
+        log_unrestricted(message)
+        return
+    if message.from_user.id in admins:
+        for file in os.listdir(f"{MAIN_PATH}recordings"):
+            with open(f"{MAIN_PATH}recordings/{file}", "rb") as f:
+                bot.send_voice(message.chat.id, f)
 
 @bot.message_handler(commands=['adduser'])
 def add_user(message):

@@ -149,7 +149,7 @@ def add_user(message):
         log_unrestricted(message)
         return
     if message.from_user.id in admins:
-        if len(message.text.split()) == 2 and len(list(message.text.split()[1])) == 9:
+        if len(message.text.split()) == 2 and len(list(message.text.split()[1])) == 9 or 10:
             try:
                 allowed_users.add(int(message.text.split()[1]))
                 new_file = []
@@ -193,6 +193,7 @@ def remove_user(message):
                                 removed = False
                                 if l == f"{message.text.split()[1]},":
                                     # user found and removed
+                                    removed = True
                                     bot.reply_to(message, f"User {message.text.split()[1]} removed!")
                                     continue
                             if not removed:
@@ -201,7 +202,6 @@ def remove_user(message):
                             new_file.append(line)
                 with open(f"{MAIN_PATH}{CONFIG_NAME}.conf", "w") as f:
                     f.writelines(new_file)
-                bot.reply_to(message, f"Added user {message.text.split()[1]}")
             except ValueError as e:
                 bot.reply_to(message, "Please enter a valid user id!")
                 bot.reply_to(message, e)

@@ -131,14 +131,20 @@ def subscribe(message):
             bot.reply_to(message, "Something went wrong with the payment. Please try again later.")
 
 
-@bot.message_handler(commands=['logs'])
+@bot.message_handler(commands=['log'])
 def send_logs(message):
     if not message.from_user.id in allowed_users:
         log_unrestricted(message)
         return
     if message.from_user.id in admins:
-        with open(f"{MAIN_PATH}odin.log", "rb") as f:
+        temp_uuid = str(uuid.uuid4())
+        os.system(f"cp {MAIN_PATH}odin.log {MAIN_PATH}{temp_uuid}.log")
+        if message.text[5:] != "":
+            os.system(f"tail -n {message.text[5:]} {MAIN_PATH}{temp_uuid}.log > {MAIN_PATH}{temp_uuid}.log")
+        os.system(f"enscript {MAIN_PATH}{temp_uuid}.log -o - | ps2pdf - {MAIN_PATH}{temp_uuid}.pdf")
+        with open(f"{MAIN_PATH}{temp_uuid}.pdf", "rb") as f:
             bot.send_document(message.chat.id, f)
+        os.system(f"rm {MAIN_PATH}{temp_uuid}.log")
     else:
         bot.reply_to(message, "You are not allowed to use this command!")
 

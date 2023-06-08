@@ -570,6 +570,13 @@ def dx(message):
     else:
         log_unrestricted(message)
 
+@bot.message_handler(commands=['doom'])
+def doom(message):
+    if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
+        bot.reply_to(message, "666")
+    else:
+        log_unrestricted(message)
+
 
 @bot.message_handler(func=lambda message: True)
 def handle_default(message):

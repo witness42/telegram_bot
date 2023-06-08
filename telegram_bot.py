@@ -182,7 +182,7 @@ def remove_user(message):
         log_unrestricted(message)
         return
     if message.from_user.id in admins:
-        if len(message.text.split()) == 2 and len(list(message.text.split()[1])) == 9:
+        if len(message.text.split()) == 2 and len(list(message.text.split()[1])) == 9 or 10:
             try:
                 allowed_users.remove(int(message.text.split()[1]))
                 new_file = []

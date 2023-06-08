@@ -160,7 +160,7 @@ def add_user(message):
                                 if l == f"{message.text.split()[1]},":
                                     bot.reply_to(message, "User is already allowed!")
                                     return
-                            nline = line.strip() + f", {int(message.text.split()[1])}"
+                            nline = line.strip() + f", {int(message.text.split()[1])}\n"
                             new_file.append(nline)
                         else:
                             new_file.append(line)
@@ -191,11 +191,14 @@ def remove_user(message):
                         if line.startswith("users:"):
                             for l in line.replace("\n", ",").split():
                                 removed = False
+                                nline = "users:"
                                 if l == f"{message.text.split()[1]},":
                                     # user found and removed
                                     removed = True
                                     bot.reply_to(message, f"User {message.text.split()[1]} removed!")
                                     continue
+                                nline += f" {l},"
+                            new_file.append(nline)
                             if not removed:
                                 bot.reply_to(message, "User could not be found! Was the user allowed before?")
                         else:

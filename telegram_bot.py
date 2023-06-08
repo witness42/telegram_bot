@@ -185,7 +185,6 @@ def remove_user(message):
     if message.from_user.id in admins:
         if len(message.text.split()) == 2 and len(list(message.text.split()[1])) == 9 or 10:
             try:
-                allowed_users.remove(int(message.text.split()[1]))
                 new_file = []
                 with open(f"{MAIN_PATH}{CONFIG_NAME}.conf", 'r') as f:
                     for line in f.readlines():
@@ -199,6 +198,7 @@ def remove_user(message):
                                 if l == f"{message.text.split()[1]},":
                                     # user found and removed
                                     removed = True
+                                    allowed_users.remove(int(message.text.split()[1]))
                                     bot.reply_to(message, f"User {message.text.split()[1]} removed!")
                                     logging.info(f"User {message.text.split()[1]} removed!")
                                     if l == split_line[-1]:

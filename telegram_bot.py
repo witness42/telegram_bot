@@ -186,10 +186,10 @@ def remove_user(message):
             try:
                 allowed_users.remove(int(message.text.split()[1]))
                 new_file = []
-                with open(f"{MAIN_PATH}{CONFIG_NAME}.conf", "r") as f:
+                with open(f"{MAIN_PATH}{CONFIG_NAME}.conf", 'r') as f:
                     for line in f.readlines():
                         if line.startswith("users:"):
-                            split_line = line.replace("\n", ",").split()
+                            split_line = line.replace('\n', ',').split()
                             for l in split_line:
                                 removed = False
                                 if l == split_line[0]:
@@ -200,7 +200,8 @@ def remove_user(message):
                                     removed = True
                                     bot.reply_to(message, f"User {message.text.split()[1]} removed!")
                                     if l == split_line[-1]:
-                                        nline += "\n"
+                                        nline.split()[-1] = '\n'
+                                        nline = "".join(nline)
                                     continue
                                 if l == split_line[-1]:
                                     nline += f" {l}\n"
@@ -211,7 +212,7 @@ def remove_user(message):
                                 bot.reply_to(message, "User could not be found! Was the user allowed before?")
                         else:
                             new_file.append(line)
-                with open(f"{MAIN_PATH}{CONFIG_NAME}.conf", "w") as f:
+                with open(f"{MAIN_PATH}{CONFIG_NAME}.conf", 'w') as f:
                     f.writelines(new_file)
             except ValueError as e:
                 bot.reply_to(message, "Please enter a valid user id!")

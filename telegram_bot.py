@@ -190,8 +190,8 @@ def remove_user(message):
                     for line in f.readlines():
                         if line.startswith("users:"):
                             split_line = line.replace('\n', ',').split()
+                            removed = False
                             for l in split_line:
-                                removed = False
                                 if l == split_line[0]:
                                     nline = f"{l}"
                                     continue
@@ -205,9 +205,8 @@ def remove_user(message):
                                         nline = ''.join(nline)
                                     continue
                                 if l == split_line[-1]:
-                                    nline += f" {l}\n"
-                                else:
-                                    nline += f" {l}"
+                                    l = l.replace(',', '\n')
+                                nline += f" {l}"
                             new_file.append(nline)
                             if not removed:
                                 bot.reply_to(message, "User could not be found! Was the user allowed before?")

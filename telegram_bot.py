@@ -292,25 +292,6 @@ def ping(message):
         send_message(message)
 
 
-# ansible needed
-# not working yet
-@bot.message_handler(commands=['update'])
-def update(message):
-    if not message.from_user.id in allowed_users:
-        log_unrestricted(message)
-        return
-    if message.from_user.id in admins:
-        bot.reply_to(message, "Updating...")
-        try:
-            response = subprocess.check_output(['ansible-playbook', f'{MAIN_PATH}{PERSONA_NAME}.yaml'])
-        except Exception as e:
-            response = str(e)
-            logging.error(str(e))
-        bot.reply_to(message, response)
-    else:
-        send_message(message)
-
-
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
     if message.from_user.id in allowed_users or message.chat.id in allowed_groups:

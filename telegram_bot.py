@@ -189,9 +189,9 @@ def remove_user(message):
                 with open(f"{MAIN_PATH}{CONFIG_NAME}.conf", "r") as f:
                     for line in f.readlines():
                         if line.startswith("users:"):
+                            nline = "users:"
                             for l in line.replace("\n", ",").split():
                                 removed = False
-                                nline = "users:"
                                 if l == f"{message.text.split()[1]},":
                                     # user found and removed
                                     removed = True

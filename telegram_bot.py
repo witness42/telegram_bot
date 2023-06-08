@@ -200,7 +200,9 @@ def remove_user(message):
                                     removed = True
                                     bot.reply_to(message, f"User {message.text.split()[1]} removed!")
                                     if l == split_line[-1]:
-                                        nline.split()[-1] = nline.split()[-1].replace(',', '\n')
+                                        nline = list(nline)
+                                        nline[-1] = '\n'
+                                        nline = ''.join(nline)
                                     continue
                                 if l == split_line[-1]:
                                     nline += f" {l}\n"

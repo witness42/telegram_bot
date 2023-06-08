@@ -149,7 +149,7 @@ def send_log(message):
         os.system(f"rm {MAIN_PATH}{temp_uuid}.log")
         os.system(f"rm {MAIN_PATH}{temp_uuid}.pdf")
     else:
-        bot.reply_to(message, "You are not allowed to use this command!")
+        send_message(message)
 
 @bot.message_handler(commands=['recordings'])
 def send_recordings(message):
@@ -160,6 +160,8 @@ def send_recordings(message):
         for file in os.listdir(f"{MAIN_PATH}recordings"):
             with open(f"{MAIN_PATH}recordings/{file}", "rb") as f:
                 bot.send_voice(message.chat.id, f)
+    else:
+        send_message(message)
 
 @bot.message_handler(commands=['adduser'])
 def add_user(message):
@@ -192,7 +194,7 @@ def add_user(message):
         else:
             bot.reply_to(message, "Please enter a user id!")
     else:
-        bot.reply_to(message, "You are not allowed to use this command!")
+        send_message(message)
 
 
 @bot.message_handler(commands=['removeuser'])
@@ -240,7 +242,7 @@ def remove_user(message):
         else:
             bot.reply_to(message, "Please enter a user id!")
     else:
-        bot.reply_to(message, "You are not allowed to use this command!")
+        send_message(message)
 
 
 @bot.message_handler(commands=['restart'])
@@ -252,7 +254,7 @@ def restart(message):
         bot.reply_to(message, "Restarting...")
         os.system(f"systemctl restart {PERSONA_NAME}.service")
     else:
-        bot.reply_to(message, "You are not allowed to use this command!")
+        send_message(message)
 
 
 @bot.message_handler(commands=['stop'])
@@ -264,7 +266,7 @@ def stop(message):
         bot.reply_to(message, "Stopping...")
         os.system(f"systemctl stop {PERSONA_NAME}.service")
     else:
-        bot.reply_to(message, "You are not allowed to use this command!")
+        send_message(message)
 
 
 @bot.message_handler(commands=['reboot'])
@@ -276,7 +278,7 @@ def reboot(message):
         bot.reply_to(message, "Rebooting...")
         os.system("systemctl reboot")
     else:
-        bot.reply_to(message, "You are not allowed to use this command!")
+        send_message(message)
 
 
 @bot.message_handler(commands=['ping'])
@@ -287,7 +289,7 @@ def ping(message):
     if message.from_user.id in admins:
         bot.reply_to(message, "Pong!")
     else:
-        bot.reply_to(message, "You are not allowed to use this command!")
+        send_message(message)
 
 
 # ansible needed
@@ -306,7 +308,7 @@ def update(message):
             logging.error(str(e))
         bot.reply_to(message, response)
     else:
-        bot.reply_to(message, "You are not allowed to use this command!")
+        send_message(message)
 
 
 @bot.message_handler(commands=['start', 'help'])

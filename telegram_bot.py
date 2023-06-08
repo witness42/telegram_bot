@@ -428,7 +428,7 @@ def generate(message):
 def make_variation(message):
     if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
         start_time = time.time()
-        if message.caption not in ["make variation", "make variations", "m"]:  # m is a shortcut
+        if message.caption.lower() not in ["make variation", "make variations", "m"]:  # m is a shortcut
             return
         try:
             if message.caption == "make variations":

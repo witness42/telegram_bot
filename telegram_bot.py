@@ -489,7 +489,7 @@ def voice_processing(message):
             with open(f"{MAIN_PATH}{audio_uuid}.mp3", 'rb') as audio_file:
                 transcript = openai.Audio.transcribe("whisper-1", audio_file)
                 if message.forward_from is not None:
-                    bot.send_message(message.forward_from.id, transcript["text"])
+                    bot.send_message(message, transcript["text"])
                 else:
                     send_message(message, transcript["text"])
             os.system(f"mv {MAIN_PATH}{audio_uuid}.mp3 {MAIN_PATH}recordings/{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.mp3")

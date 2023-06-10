@@ -39,7 +39,7 @@ config.read(f"{MAIN_PATH}{CONFIG_NAME}.conf")
 LOG_LEVELS = {None: logging.DEBUG, "debug": logging.DEBUG, "info": logging.INFO, "warning": logging.WARNING,
               "error": logging.ERROR, "critical": logging.CRITICAL}
 LOG_LEVEL = LOG_LEVELS[config.get("log", "level", fallback=None)]
-logging.basicConfig(filename=f"{MAIN_PATH}odin.log", level=LOG_LEVEL,
+logging.basicConfig(filename=f"{MAIN_PATH}{CONFIG_NAME}.log", level=LOG_LEVEL,
                     format="%(asctime)s [%(levelname)-8s] %(process)d %(module)s (%(lineno)d): %(message)s")
 
 DEBUG = config.getboolean("log", "debug")

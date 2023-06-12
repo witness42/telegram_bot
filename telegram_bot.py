@@ -612,6 +612,37 @@ def dx(message):
     else:
         log_unrestricted(message)
 
+@bot.message_handler(commands=['ttsg'])
+def ttsg(message):
+    if message.from_user.id in allowed_users:
+        start_time = time.time()
+        try:
+            text_input = tts.SynthesisInput(text=message.text[6:])
+            voice_params = tts.VoiceSelectionParams(
+                language_code="de-DE", name="de-DE-Neural2-C", ssml_gender=tts.SsmlVoiceGender.FEMALE
+            )
+            audio_config = tts.AudioConfig(audio_encoding=tts.AudioEncoding.MP3)
+
+            client = tts.TextToSpeechClient()
+            response = client.synthesize_speech(
+                input=text_input,
+                voice=voice_params,
+                audio_config=audio_config,
+            )
+            generated_audio_uuid = str(uuid.uuid4())
+            filename = f"{MAIN_PATH}generated-audio/{generated_audio_uuid}.mp3"
+            with open(filename, "wb") as out:
+                out.write(response.audio_content)
+                stop_time = time.time()
+                logging.info(f"time taken for speech generation: {str(round(start_time - stop_time, 2))}")
+        except Exception as e:
+            error = f"Error while generating speech: {str(e)}"
+            logging.error(error)
+            bot.reply_to(message, error)
+            debug_msg(error)
+    else:
+        log_unrestricted(message)
+
 
 @bot.message_handler(func=lambda message: True)
 def handle_default(message):

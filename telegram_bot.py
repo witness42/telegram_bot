@@ -66,7 +66,6 @@ subscribed_users = set([int(x) for x in config.get("acl", "subscribed").split(",
 admins = set([int(x) for x in config.get("acl", "admins").split(",")])
 allowed_users = set([int(x) for x in config.get("acl", "users").split(",")])
 allowed_users = allowed_users.union(subscribed_users)
-allowed_groups = set([int(x) for x in config.get("acl", "groups").split(",")])
 already_restriced_users = set()
 
 logging.info(f'{bot.user.username} is ready!')
@@ -294,13 +293,13 @@ def ping(message):
 
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
-    if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
+    if message.from_user.id in allowed_users:
         bot.reply_to(message, WELCOME_MSG)
 
 
 @bot.message_handler(commands=['forget'])
 def clear_context(message):
-    if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
+    if message.from_user.id in allowed_users:
         if user_context.get(message.from_user.id, None) is None:
             bot.reply_to(message, NOT_FORGOTTEN_MSG)
             return
@@ -314,7 +313,7 @@ def clear_context(message):
 def send_message(message, transcript=None):
     if message.chat.type == "group" and transcript is None:
         return
-    if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
+    if message.from_user.id in allowed_users:
         start_time = time.time()
         if transcript is not None:
             message.text = transcript
@@ -390,7 +389,7 @@ def send_message(message, transcript=None):
 
 @bot.message_handler(commands=['generate'])
 def generate(message):
-    if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
+    if message.from_user.id in allowed_users:
         start_time = time.time()
         try:
             if message.text[10:] == "":
@@ -426,7 +425,7 @@ def generate(message):
 
 @bot.message_handler(content_types=['photo'])
 def make_variation(message):
-    if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
+    if message.from_user.id in allowed_users:
         start_time = time.time()
         if message.caption.lower() not in ["make variation", "make variations", "m"]:  # m is a shortcut
             return
@@ -477,7 +476,7 @@ def make_variation(message):
 
 @bot.message_handler(content_types=['voice'])
 def voice_processing(message):
-    if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
+    if message.from_user.id in allowed_users:
         start_time = time.time()
         try:
             file_info = bot.get_file(message.voice.file_id)
@@ -507,7 +506,7 @@ def voice_processing(message):
 
 @bot.message_handler(content_types=['video'])
 def translate_video(message):
-    if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
+    if message.from_user.id in allowed_users:
         start_time = time.time()
         if message.caption.lower() not in ["translate", "t", "translate to german", "tg"]:  # t is a shortcut
             return
@@ -550,21 +549,21 @@ def translate_video(message):
 
 @bot.message_handler(commands=['dice'])
 def dice(message):
-    if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
+    if message.from_user.id in allowed_users:
         bot.reply_to(message, random.randint(1, 6))
     else:
         log_unrestricted(message)
 
 @bot.message_handler(commands=['coin'])
 def coin(message):
-    if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
+    if message.from_user.id in allowed_users:
         bot.reply_to(message, random.choice(["Kopf", "Zahl"]))
     else:
         log_unrestricted(message)
 
 @bot.message_handler(commands=['d'])
 def dx(message):
-    if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
+    if message.from_user.id in allowed_users:
         try:
             res = random.randint(1, int(message.text.split(" ")[1]))
             bot.reply_to(message, "Mit einem D" +  message.text.split(" ")[1] + " hast du eine " + str(res) + " gewürfelt!")

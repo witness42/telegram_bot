@@ -576,7 +576,7 @@ def dx(message):
 @bot.message_handler(commands=['doom'])
 def doom(message):
     if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
-        bot.reply_to(message, "666")
+        bot.reply_to(message, os.system("cat doom.txt"))
     else:
         log_unrestricted(message)
 

@@ -632,10 +632,12 @@ def ttsg(message):
             )
             generated_audio_uuid = str(uuid.uuid4())
             filename = f"{MAIN_PATH}generated-audio/{generated_audio_uuid}.mp3"
-            with open(filename, "wb") as out:
+            with open(filename, 'wb') as out:
                 out.write(response.audio_content)
-                stop_time = time.time()
-                logging.info(f"time taken for speech generation: {str(round(start_time - stop_time, 2))}")
+            stop_time = time.time()
+            with open(filename, 'rb') as f:
+                bot.send_voice(message.chat.id, f)
+            logging.info(f"time taken for speech generation: {str(round(start_time - stop_time, 2))}")
         except Exception as e:
             error = f"Error while generating speech: {str(e)}"
             logging.error(error)

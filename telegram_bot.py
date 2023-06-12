@@ -503,13 +503,57 @@ def voice_processing(message):
     else:
         log_unrestricted(message)
 
+def deepl_translate(message, text, target_lang) -> None:
+    url = 'https://api-free.deepl.com/v2/translate'
+    payload = {'text': text, 'target_lang': target_lang}
+    headers = {'Authorization': "DeepL-Auth-Key " + deepl_api_key,
+               'User-Agent': 'YourApp/1.2.3',
+               'Content-Type': 'application/x-www-form-urlencoded'}
+
+    response = requests.post(url, data=payload, headers=headers)
+    res = json.loads(response.text)
+    logging.info(f"Translated video text for {message.from_user.first_name}({message.from_user.id}): {res['translations'][0]['text']}")
+    bot.reply_to(message, res["translations"][0]["text"])
+
+@bot.message_handler(commands=['tg'])
+def translate_message_to_german(message):
+    if message.from_user.id in allowed_users:
+        deepl_translate(message, message.text[4:], "DE")
+    else:
+        log_unrestricted(message)
+
+@bot.message_handler(commands=['te'])
+def translate_message_to_english(message):
+    if message.from_user.id in allowed_users:
+        deepl_translate(message, message.text[4:], "EN")
+    else:
+        log_unrestricted(message)
+
+@bot.message_handler(commands=['tf'])
+def translate_message_to_english(message):
+    if message.from_user.id in allowed_users:
+        deepl_translate(message, message.text[4:], "FR")
+    else:
+        log_unrestricted(message)
+
+@bot.message_handler(commands=['ts'])
+def translate_message_to_english(message):
+    if message.from_user.id in allowed_users:
+        deepl_translate(message, message.text[4:], "ES")
+    else:
+        log_unrestricted(message)
+
+@bot.message_handler(commands=['tp'])
+def translate_message_to_english(message):
+    if message.from_user.id in allowed_users:
+        deepl_translate(message, message.text[4:], "PL")
+    else:
+        log_unrestricted(message)
 
 @bot.message_handler(content_types=['video'])
 def translate_video(message):
     if message.from_user.id in allowed_users:
         start_time = time.time()
-        if message.caption.lower() not in ["translate", "t", "translate to german", "tg"]:  # t is a shortcut
-            return
         try:
             bot.reply_to(message, "Translating video...")
             file_info = bot.get_file(message.video.file_id)
@@ -519,21 +563,17 @@ def translate_video(message):
                 video_file.write(downloaded_file)
             os.system(f"ffmpeg -i {MAIN_PATH}{file_uuid}.mp4 {MAIN_PATH}{file_uuid}.mp3")
             os.remove(f"{MAIN_PATH}{file_uuid}.mp4")
-
             with open(f"{MAIN_PATH}{file_uuid}.mp3", 'rb') as audio_file:
                 transcript = openai.Audio.translate("whisper-1", audio_file)
             os.remove(f"{MAIN_PATH}{file_uuid}.mp3")
             if message.caption.lower() in ["tg", "translate to german"]:
-                url = 'https://api-free.deepl.com/v2/translate'
-                payload = {'text': transcript["text"], 'target_lang': 'DE'}
-                headers = {'Authorization': "DeepL-Auth-Key " + deepl_api_key,
-                           'User-Agent': 'YourApp/1.2.3',
-                           'Content-Type': 'application/x-www-form-urlencoded'}
-
-                response = requests.post(url, data=payload, headers=headers)
-                res = json.loads(response.text)
-                logging.info(f"Translated video text for {message.from_user.first_name}({message.from_user.id}): {res['translations'][0]['text']}")
-                bot.reply_to(message, res["translations"][0]["text"])
+                deepl_translate(message, transcript["text"], "DE")
+            elif message.caption.lower() in ["tf", "translate to french"]:
+                deepl_translate(message, transcript["text"], "FR")
+            elif message.caption.lower() in ["ts", "translate to spanish"]:
+                deepl_translate(message, transcript["text"], "ES")
+            elif message.caption.lower() in ["tp", "translate to polish"]:
+                deepl_translate(message, transcript["text"], "PL")
             else:
                 logging.info(f"Translated video text for {message.from_user.first_name}({message.from_user.id}): {transcript['text']}")
                 bot.reply_to(message, transcript["text"])

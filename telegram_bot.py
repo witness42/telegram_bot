@@ -615,11 +615,16 @@ def dx(message):
 
 @bot.message_handler(func=lambda message: True)
 def handle_default(message):
-    if message.forward_from is not None:
-        if message.from_user.id in admins:
-            bot.reply_to(message, message.forward_from)
+    if message.from_user.id in allowed_users:
+        if message.forward_from is not None:
+            translate_message_to_german(message)
+            if message.video is not None:
+                message.caption = "tg"
+                translate_video(message)
+        else:
+            send_message(message)
     else:
-        send_message(message)
+        log_unrestricted(message)
 
 
 def log_unrestricted(message):

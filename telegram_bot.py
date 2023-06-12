@@ -616,11 +616,8 @@ def dx(message):
 @bot.message_handler(func=lambda message: True)
 def handle_default(message):
     if message.from_user.id in allowed_users:
-        if message.forward_from is not None:
-            translate_message_to_german(message)
-            if message.video is not None:
-                message.caption = "tg"
-                translate_video(message)
+        if message.video is not None:
+            translate_video(message)
         else:
             send_message(message)
     else:

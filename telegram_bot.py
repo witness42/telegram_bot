@@ -613,14 +613,14 @@ def dx(message):
     else:
         log_unrestricted(message)
 
-@bot.message_handler(commands=['ttsg'])
-def ttsg(message):
+
+def tts_fn(message, language_code, voice_name):
     if message.from_user.id in allowed_users:
         start_time = time.time()
         try:
-            text_input = tts.SynthesisInput(text=message.text[6:])
+            text_input = tts.SynthesisInput(text=message.text[7:])
             voice_params = tts.VoiceSelectionParams(
-                language_code="de-DE", name="de-DE-Neural2-C", ssml_gender=tts.SsmlVoiceGender.FEMALE
+                language_code=language_code, name=voice_name, ssml_gender=tts.SsmlVoiceGender.FEMALE
             )
             audio_config = tts.AudioConfig(audio_encoding=tts.AudioEncoding.MP3)
 
@@ -644,6 +644,16 @@ def ttsg(message):
             debug_msg(error)
     else:
         log_unrestricted(message)
+
+
+@bot.message_handler(commands=['ttsge'])
+def ttsg(message):
+    tts_fn(message, "de-DE", "de-DE-Neural2-C")
+
+
+@bot.message_handler(commands=['ttspl'])
+def ttspl(message):
+    tts_fn(message, "pl-PL", "pl-PL-Standard-D")
 
 
 @bot.message_handler(func=lambda message: True)

@@ -22,6 +22,7 @@ import requests
 import json
 import subprocess
 import paypalrestsdk
+import google.cloud.texttospeech as tts
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 deepl_api_key = os.environ.get("DEEPL_API_KEY")

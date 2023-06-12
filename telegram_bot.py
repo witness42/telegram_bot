@@ -573,13 +573,6 @@ def dx(message):
     else:
         log_unrestricted(message)
 
-@bot.message_handler(commands=['doom'])
-def doom(message):
-    if message.from_user.id in allowed_users or message.chat.id in allowed_groups:
-        bot.reply_to(message, [line for line in open(f"{MAIN_PATH}doom.txt")])
-    else:
-        log_unrestricted(message)
-
 
 @bot.message_handler(func=lambda message: True)
 def handle_default(message):

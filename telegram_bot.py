@@ -614,13 +614,13 @@ def dx(message):
         log_unrestricted(message)
 
 
-def tts_fn(message, language_code, voice_name):
+def tts_fn(message, language_code, voice_name, gender):
     if message.from_user.id in allowed_users:
         start_time = time.time()
         try:
             text_input = tts.SynthesisInput(text=message.text[7:])
             voice_params = tts.VoiceSelectionParams(
-                language_code=language_code, name=voice_name, ssml_gender=tts.SsmlVoiceGender.FEMALE
+                language_code=language_code, name=voice_name, ssml_gender=gender
             )
             audio_config = tts.AudioConfig(audio_encoding=tts.AudioEncoding.MP3)
 
@@ -648,12 +648,27 @@ def tts_fn(message, language_code, voice_name):
 
 @bot.message_handler(commands=['ttsge'])
 def ttsg(message):
-    tts_fn(message, "de-DE", "de-DE-Neural2-C")
+    tts_fn(message, "de-DE", "de-DE-Neural2-C", tts.SsmlVoiceGender.FEMALE)
 
 
 @bot.message_handler(commands=['ttspl'])
 def ttspl(message):
-    tts_fn(message, "pl-PL", "pl-PL-Standard-D")
+    tts_fn(message, "pl-PL", "pl-PL-Standard-D", tts.SsmlVoiceGender.FEMALE)
+
+
+@bot.message_handler(commands=['ttsfr'])
+def ttsfr(message):
+    tts_fn(message, "fr-FR", "fr-FR-Neural2-C", tts.SsmlVoiceGender.FEMALE)
+
+
+@bot.message_handler(commands=['ttses'])
+def ttses(message):
+    tts_fn(message, "es-ES", "es-US-News-F", tts.SsmlVoiceGender.FEMALE)
+
+
+@bot.message_handler(commands=['ttsen'])
+def ttsen(message):
+    tts_fn(message, "en-US", "en-US-Standard-F", tts.SsmlVoiceGender.FEMALE)
 
 
 @bot.message_handler(func=lambda message: True)

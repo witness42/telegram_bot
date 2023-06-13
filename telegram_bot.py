@@ -516,40 +516,38 @@ def deepl_translate(message, text, target_lang) -> None:
     logging.info(f"Translated video text for {message.from_user.first_name}({message.from_user.id}): {res['translations'][0]['text']}")
     bot.reply_to(message, res["translations"][0]["text"])
 
-@bot.message_handler(commands=['tg'])
+
+def translate_message(message, text, target_lang) -> None:
+    if message.from_user.id in allowed_users:
+        deepl_translate(message, text[5:], target_lang)
+    else:
+        log_unrestricted(message)
+
+
+@bot.message_handler(commands=['tge'])
 def translate_message_to_german(message):
-    if message.from_user.id in allowed_users:
-        deepl_translate(message, message.text[4:], "DE")
-    else:
-        log_unrestricted(message)
+    translate_message(message, message.text, "DE")
 
-@bot.message_handler(commands=['te'])
-def translate_message_to_english(message):
-    if message.from_user.id in allowed_users:
-        deepl_translate(message, message.text[4:], "EN")
-    else:
-        log_unrestricted(message)
 
-@bot.message_handler(commands=['tf'])
+@bot.message_handler(commands=['ten'])
 def translate_message_to_english(message):
-    if message.from_user.id in allowed_users:
-        deepl_translate(message, message.text[4:], "FR")
-    else:
-        log_unrestricted(message)
+    translate_message(message, message.text, "EN")
 
-@bot.message_handler(commands=['ts'])
-def translate_message_to_english(message):
-    if message.from_user.id in allowed_users:
-        deepl_translate(message, message.text[4:], "ES")
-    else:
-        log_unrestricted(message)
 
-@bot.message_handler(commands=['tp'])
+@bot.message_handler(commands=['tfr'])
 def translate_message_to_english(message):
-    if message.from_user.id in allowed_users:
-        deepl_translate(message, message.text[4:], "PL")
-    else:
-        log_unrestricted(message)
+    translate_message(message, message.text, "FR")
+
+
+@bot.message_handler(commands=['tes'])
+def translate_message_to_english(message):
+    translate_message(message, message.text, "ES")
+
+
+@bot.message_handler(commands=['tpl'])
+def translate_message_to_english(message):
+    translate_message(message, message.text, "PL")
+
 
 @bot.message_handler(content_types=['video'])
 def translate_video(message):

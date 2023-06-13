@@ -149,6 +149,7 @@ def send_log(message):
     else:
         send_message(message)
 
+
 @bot.message_handler(commands=['recordings'])
 def send_recordings(message):
     if not message.from_user.id in allowed_users:
@@ -160,6 +161,7 @@ def send_recordings(message):
                 bot.send_voice(message.chat.id, f)
     else:
         send_message(message)
+
 
 @bot.message_handler(commands=['adduser'])
 def add_user(message):
@@ -498,9 +500,10 @@ def voice_processing(message):
             bot.reply_to(message, error)
             debug_msg(error)
         stop_time = time.time()
-        logging.info("time taken for voice processing: " + str(round(start_time - stop_time, 2)) + " seconds")
+        logging.info(f"User {message.from_user.first_name}({message.from_user.id}) accessed voice processing. time taken: {str(round(start_time - stop_time, 2))} seconds")
     else:
         log_unrestricted(message)
+
 
 def deepl_translate(message, text, target_lang) -> None:
     url = 'https://api-free.deepl.com/v2/translate'
@@ -511,13 +514,13 @@ def deepl_translate(message, text, target_lang) -> None:
 
     response = requests.post(url, data=payload, headers=headers)
     res = json.loads(response.text)
-    logging.info(f"Translated video text for {message.from_user.first_name}({message.from_user.id}): {res['translations'][0]['text']}")
+    logging.info(f"Translated text for {message.from_user.first_name}({message.from_user.id}): {res['translations'][0]['text']}")
     bot.reply_to(message, res["translations"][0]["text"])
 
 
 def translate_message(message, text, target_lang) -> None:
     if message.from_user.id in allowed_users:
-        deepl_translate(message, text[5:], target_lang)
+        deepl_translate(message, text[4:], target_lang)
     else:
         log_unrestricted(message)
 
@@ -610,7 +613,7 @@ def tts_fn(message, language_code, voice_name, gender):
                 out.write(response.audio_content)
                 bot.send_voice(message.chat.id, response.audio_content)
             stop_time = time.time()
-            logging.info(f"time taken for speech generation: {str(round(start_time - stop_time, 2))}")
+            logging.info(f"User {message.from_user.first_name}({message.from_user.id}) accessed speech generation. time taken: {str(round(start_time - stop_time, 2))}")
         except Exception as e:
             error = f"Error while generating speech: {str(e)}"
             logging.error(error)

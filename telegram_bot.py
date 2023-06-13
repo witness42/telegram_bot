@@ -136,15 +136,16 @@ def send_log(message):
         return
     if message.from_user.id in admins:
         temp_uuid = str(uuid.uuid4())
+        output_uuid = str(uuid.uuid4())
         os.system(f"cp {MAIN_PATH}odin.log {MAIN_PATH}{temp_uuid}.log")
         if message.text[5:].isdigit():
-            output_uuid = str(uuid.uuid4())
             os.system(f"tail -n {message.text[5:]} {MAIN_PATH}{temp_uuid}.log > {MAIN_PATH}{output_uuid}.log")
             temp_uuid = output_uuid
         os.system(f"cat {MAIN_PATH}{temp_uuid}.log | iconv -f utf-8 -t iso-8859-1 -sc | enscript -X 88591 -o -| ps2pdf - {MAIN_PATH}{temp_uuid}.pdf")
         with open(f"{MAIN_PATH}{temp_uuid}.pdf", "rb") as f:
             bot.send_document(message.chat.id, f)
         os.system(f"rm {MAIN_PATH}{temp_uuid}.log")
+        os.system(f"rm {MAIN_PATH}{output_uuid}.log")
         os.system(f"rm {MAIN_PATH}{temp_uuid}.pdf")
     else:
         send_message(message)

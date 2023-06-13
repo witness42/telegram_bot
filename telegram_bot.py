@@ -586,30 +586,8 @@ def translate_video(message):
     else:
         log_unrestricted(message)
 
-@bot.message_handler(commands=['dice'])
-def dice(message):
-    if message.from_user.id in allowed_users:
-        bot.reply_to(message, random.randint(1, 6))
-    else:
-        log_unrestricted(message)
 
-@bot.message_handler(commands=['coin'])
-def coin(message):
-    if message.from_user.id in allowed_users:
-        bot.reply_to(message, random.choice(["Kopf", "Zahl"]))
-    else:
-        log_unrestricted(message)
 
-@bot.message_handler(commands=['d'])
-def dx(message):
-    if message.from_user.id in allowed_users:
-        try:
-            res = random.randint(1, int(message.text.split(" ")[1]))
-            bot.reply_to(message, "Mit einem D" +  message.text.split(" ")[1] + " hast du eine " + str(res) + " gewürfelt!")
-        except:
-            bot.reply_to(message, "Usage: /d <number>")
-    else:
-        log_unrestricted(message)
 
 
 def tts_fn(message, language_code, voice_name, gender):

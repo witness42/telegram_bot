@@ -12,7 +12,6 @@ import os
 import sys
 import time
 import uuid
-import random
 import datetime
 import telebot
 import openai
@@ -20,7 +19,6 @@ import tiktoken
 import configparser
 import requests
 import json
-import subprocess
 import paypalrestsdk
 import google.cloud.texttospeech as tts
 

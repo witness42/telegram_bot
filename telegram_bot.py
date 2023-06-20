@@ -10,6 +10,7 @@ TODO: web crawling, activate window method, document translation, if more users 
 import logging
 import os
 import sys
+import math
 import time
 import uuid
 import datetime
@@ -83,6 +84,13 @@ class Context:
 
     def remove_message(self, message):
         self.context.remove(message)
+
+def message_to_list(message):
+    message_chunks = math.floor(len(message.text) / 4096) + 1
+    message_list = []
+    for i in range(message_chunks):
+        message_list.append(message.text[i * 4096:(i + 1) * 4096])
+    return message_list
 
 
 def create_payment_object():
@@ -362,9 +370,11 @@ def send_message(message, transcript=None):
                 context_obj.remove_message(context[1])
                 context_obj.remove_message(context[2])
             stop_time = time.time()
-            logging.info("time taken: " + str(round(start_time - stop_time, 2)) + " seconds")
             remove_lock()
-            bot.reply_to(message, output['content'], parse_mode='Markdown')
+            logging.info("time taken: " + str(round(start_time - stop_time, 2)) + " seconds")
+            output = message_to_list(output["content"])
+            for i in output:
+                bot.reply_to(message, i, parse_mode="Markdown")
         except telebot.apihelper.ApiTelegramException as e:
             error = f"Error while generating chat response: {str(e)}"
             logging.error(error)
@@ -372,7 +382,8 @@ def send_message(message, transcript=None):
             debug_msg(error)
             remove_lock()
             try:
-                bot.reply_to(message, output['content'])
+                for i in output:
+                    bot.reply_to(message, i)
             except Exception as e:
                 error = f"second try due to {str(e)}"
                 logging.error(error)
@@ -516,7 +527,9 @@ def deepl_translate(message, text, target_lang) -> None:
     response = requests.post(url, data=payload, headers=headers)
     res = json.loads(response.text)
     logging.info(f"Translated text for {message.from_user.first_name}({message.from_user.id}): {res['translations'][0]['text']}")
-    bot.reply_to(message, res["translations"][0]["text"])
+    output = message_to_list(res["translations"][0]["text"])
+    for i in output:
+        bot.reply_to(message, i)
 
 
 def translate_message(message, text, target_lang) -> None:
@@ -578,10 +591,14 @@ def translate_video(message):
                     deepl_translate(message, transcript["text"], "PL")
                 else:
                     logging.info(f"Translated video text for {message.from_user.first_name}({message.from_user.id}): {transcript['text']}")
-                    bot.reply_to(message, transcript["text"])
+                    output = message_to_list(transcript["text"])
+                    for i in output:
+                        bot.reply_to(message, i)
             else:
                 logging.info(f"Translated video text for {message.from_user.first_name}({message.from_user.id}): {transcript['text']}")
-                bot.reply_to(message, transcript["text"])
+                output = message_to_list(transcript["text"])
+                for i in output:
+                    bot.reply_to(message, i)
         except Exception as e:
             error = f"Error while translating video: {str(e)}"
             logging.error(error)

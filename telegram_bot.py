@@ -85,11 +85,11 @@ class Context:
     def remove_message(self, message):
         self.context.remove(message)
 
-def message_to_list(message):
-    message_chunks = math.floor(len(message.text) / 4096) + 1
+def message_to_list(text: str) -> list:
+    message_chunks = math.floor(len(text) / 4096) + 1
     message_list = []
     for i in range(message_chunks):
-        message_list.append(message.text[i * 4096:(i + 1) * 4096])
+        message_list.append(text[i * 4096:(i + 1) * 4096])
     return message_list
 
 

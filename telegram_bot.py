@@ -567,14 +567,18 @@ def translate_video(message):
             with open(f"{MAIN_PATH}{file_uuid}.mp3", 'rb') as audio_file:
                 transcript = openai.Audio.translate("whisper-1", audio_file)
             os.remove(f"{MAIN_PATH}{file_uuid}.mp3")
-            if message.caption.lower() in ["tg", "translate to german"]:
-                deepl_translate(message, transcript["text"], "DE")
-            elif message.caption.lower() in ["tf", "translate to french"]:
-                deepl_translate(message, transcript["text"], "FR")
-            elif message.caption.lower() in ["ts", "translate to spanish"]:
-                deepl_translate(message, transcript["text"], "ES")
-            elif message.caption.lower() in ["tp", "translate to polish"]:
-                deepl_translate(message, transcript["text"], "PL")
+            if message.caption is not None:
+                if message.caption.lower() in ["tg", "translate to german"]:
+                    deepl_translate(message, transcript["text"], "DE")
+                elif message.caption.lower() in ["tf", "translate to french"]:
+                    deepl_translate(message, transcript["text"], "FR")
+                elif message.caption.lower() in ["ts", "translate to spanish"]:
+                    deepl_translate(message, transcript["text"], "ES")
+                elif message.caption.lower() in ["tp", "translate to polish"]:
+                    deepl_translate(message, transcript["text"], "PL")
+                else:
+                    logging.info(f"Translated video text for {message.from_user.first_name}({message.from_user.id}): {transcript['text']}")
+                    bot.reply_to(message, transcript["text"])
             else:
                 logging.info(f"Translated video text for {message.from_user.first_name}({message.from_user.id}): {transcript['text']}")
                 bot.reply_to(message, transcript["text"])

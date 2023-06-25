@@ -3,3 +3,4 @@ paypalrestsdk==1.13.1
 pyTelegramBotAPI==4.12.0
 Requests==2.31.0
 tiktoken==0.3.2
+google-cloud-texttospeech==2.14.1

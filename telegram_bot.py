@@ -660,10 +660,12 @@ def translate_document(message: telebot.types.Message) -> None:
         file_info = bot.get_file(message.document.file_id)
         downloaded_file = bot.download_file(file_info.file_path)
         file_uuid = str(uuid.uuid4())
+        if file_type == "plain":
+            file_type = "txt"
         with open(f"{MAIN_PATH}{file_uuid}.{file_type}", 'wb') as doc:
             doc.write(downloaded_file)
         doc.close()
-        if file_type == "plain":
+        if file_type == "txt":
             with open(f"{MAIN_PATH}{file_uuid}.txt", 'r') as doc:
                 text = doc.read()
                 translate_to_document(message, text, "DE")

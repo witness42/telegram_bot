@@ -27,7 +27,8 @@ openai.api_key = os.environ.get("OPENAI_API_KEY")
 deepl_api_key = os.environ.get("DEEPL_API_KEY")
 
 if len(sys.argv) != 3:
-    print("Usage: python3.9 telegram_bot.py <main_folder_path>(e.g. /home/dummyuser/shitty_telegram_bot/) <config_name> (e.g. shitty_telegram_bot)")
+    print(
+        "Usage: python3.9 telegram_bot.py <main_folder_path>(e.g. /home/dummyuser/shitty_telegram_bot/) <config_name> (e.g. shitty_telegram_bot)")
     sys.exit(1)
 MAIN_PATH = sys.argv[1]
 CONFIG_NAME = sys.argv[2]
@@ -84,6 +85,7 @@ class Context:
 
     def remove_message(self, message):
         self.context.remove(message)
+
 
 def message_to_list(text: str) -> list:
     message_chunks = math.floor(len(text) / 4096) + 1
@@ -149,7 +151,8 @@ def send_log(message):
         if message.text[5:].isdigit():
             os.system(f"tail -n {message.text[5:]} {MAIN_PATH}{temp_uuid}.log > {MAIN_PATH}{output_uuid}.log")
             temp_uuid = output_uuid
-        os.system(f"cat {MAIN_PATH}{temp_uuid}.log | iconv -f utf-8 -t iso-8859-1 -sc | enscript -X 88591 -o -| ps2pdf - {MAIN_PATH}{temp_uuid}.pdf")
+        os.system(
+            f"cat {MAIN_PATH}{temp_uuid}.log | iconv -f utf-8 -t iso-8859-1 -sc | enscript -X 88591 -o -| ps2pdf - {MAIN_PATH}{temp_uuid}.pdf")
         with open(f"{MAIN_PATH}{temp_uuid}.pdf", "rb") as f:
             bot.send_document(message.chat.id, f)
         os.system(f"rm {MAIN_PATH}{temp_uuid}.log")
@@ -409,7 +412,8 @@ def generate(message):
                 bot.reply_to(message, "Please enter a prompt for the image generation")
                 return
             bot.reply_to(message, "Your image is being drawn...")
-            logging.info(f"{message.from_user.first_name}({message.from_user.id}): Image generation message({message.text[10:]})")
+            logging.info(
+                f"{message.from_user.first_name}({message.from_user.id}): Image generation message({message.text[10:]})")
             try:
                 response = openai.Image.create(
                     prompt=message.text[10:],
@@ -421,7 +425,9 @@ def generate(message):
                 response = requests.get(image_url)
                 stop_time = time.time()
                 logging.info("time taken for image generation: " + str(round(start_time - stop_time, 2)) + " seconds")
-                bot.send_photo(message.chat.id, response.content, caption=message.text[10:] + "\ntime taken for image generation: " + str(round(start_time - stop_time, 2)) + " seconds")
+                bot.send_photo(message.chat.id, response.content,
+                               caption=message.text[10:] + "\ntime taken for image generation: " + str(
+                                   round(start_time - stop_time, 2)) + " seconds")
             except openai.error.OpenAIError as e:
                 error = f"HTTP STATUS: {e.http_status}, ERROR: {e.error}"
                 logging.error(error)
@@ -472,7 +478,8 @@ def make_variation(message):
                 os.remove(f"{MAIN_PATH}{image_uuid}.png")
                 stop_time = time.time()
                 logging.info("time taken for image generation: " + str(round(start_time - stop_time, 2)) + " seconds")
-                bot.send_photo(message.chat.id, response.content, caption="\ntime taken for image generation: " + str(round(start_time - stop_time, 2)) + " seconds")
+                bot.send_photo(message.chat.id, response.content, caption="\ntime taken for image generation: " + str(
+                    round(start_time - stop_time, 2)) + " seconds")
             except openai.error.OpenAIError as e:
                 error = f"HTTP STATUS: {e.http_status}, ERROR: {e.error}"
                 logging.error(error)
@@ -497,14 +504,16 @@ def voice_processing(message):
             audio_uuid = str(uuid.uuid4())
             with open(f"{MAIN_PATH}{audio_uuid}.ogg", 'wb') as audio_file:
                 audio_file.write(downloaded_file)
-            os.system(f"ffmpeg -i {MAIN_PATH}{audio_uuid}.ogg -codec:a libmp3lame -qscale:a 2 {MAIN_PATH}{audio_uuid}.mp3")
+            os.system(
+                f"ffmpeg -i {MAIN_PATH}{audio_uuid}.ogg -codec:a libmp3lame -qscale:a 2 {MAIN_PATH}{audio_uuid}.mp3")
             with open(f"{MAIN_PATH}{audio_uuid}.mp3", 'rb') as audio_file:
                 transcript = openai.Audio.transcribe("whisper-1", audio_file)
                 if message.forward_from is not None:
                     bot.send_message(message.chat.id, transcript["text"])
                 else:
                     send_message(message, transcript["text"])
-            os.system(f"mv {MAIN_PATH}{audio_uuid}.mp3 {MAIN_PATH}recordings/{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.mp3")
+            os.system(
+                f"mv {MAIN_PATH}{audio_uuid}.mp3 {MAIN_PATH}recordings/{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.mp3")
             os.remove(f"{MAIN_PATH}{audio_uuid}.ogg")
         except Exception as e:
             error = f"Error while processing audio: {str(e)}"
@@ -512,7 +521,8 @@ def voice_processing(message):
             bot.reply_to(message, error)
             debug_msg(error)
         stop_time = time.time()
-        logging.info(f"User {message.from_user.first_name}({message.from_user.id}) accessed voice processing. time taken: {str(round(start_time - stop_time, 2))} seconds")
+        logging.info(
+            f"User {message.from_user.first_name}({message.from_user.id}) accessed voice processing. time taken: {str(round(start_time - stop_time, 2))} seconds")
     else:
         log_unrestricted(message)
 
@@ -526,7 +536,8 @@ def deepl_translate(message, text, target_lang) -> None:
 
     response = requests.post(url, data=payload, headers=headers)
     res = json.loads(response.text)
-    logging.info(f"Translated text for {message.from_user.first_name}({message.from_user.id}): {res['translations'][0]['text']}")
+    logging.info(
+        f"Translated text for {message.from_user.first_name}({message.from_user.id}): {res['translations'][0]['text']}")
     output = message_to_list(res["translations"][0]["text"])
     for i in output:
         bot.reply_to(message, i)
@@ -590,12 +601,14 @@ def translate_video(message):
                 elif message.caption.lower() in ["tp", "translate to polish"]:
                     deepl_translate(message, transcript["text"], "PL")
                 else:
-                    logging.info(f"Translated video text for {message.from_user.first_name}({message.from_user.id}): {transcript['text']}")
+                    logging.info(
+                        f"Translated video text for {message.from_user.first_name}({message.from_user.id}): {transcript['text']}")
                     output = message_to_list(transcript["text"])
                     for i in output:
                         bot.reply_to(message, i)
             else:
-                logging.info(f"Translated video text for {message.from_user.first_name}({message.from_user.id}): {transcript['text']}")
+                logging.info(
+                    f"Translated video text for {message.from_user.first_name}({message.from_user.id}): {transcript['text']}")
                 output = message_to_list(transcript["text"])
                 for i in output:
                     bot.reply_to(message, i)
@@ -610,7 +623,25 @@ def translate_video(message):
         log_unrestricted(message)
 
 
-
+@bot.message_handler(content_types=['document'])
+def translate_document(message):
+    if message.from_user.id in allowed_users:
+        logging.info(f"Translating document for {message.from_user.first_name}({message.from_user.id})")
+        logging.info(f"File type: {message.document.mime_type}")
+        file_info = bot.get_file(message.document.file_id)
+        downloaded_file = bot.download_file(file_info.file_path)
+        file_uuid = str(uuid.uuid4())
+        with open(f"{MAIN_PATH}{file_uuid}.{message.document.mime_type}", 'wb') as doc:
+            doc.write(downloaded_file)
+        doc.close()
+        if message.document.mime_type == "pdf":
+            os.system(f"pdftotext {MAIN_PATH}{file_uuid}.pdf {MAIN_PATH}{file_uuid}.txt")
+            with open(f"{MAIN_PATH}{file_uuid}.txt", 'r') as doc:
+                text = doc.read()
+                translate_message(message, text, "DE")
+            doc.close()
+    else:
+        log_unrestricted(message)
 
 
 def tts_fn(message, language_code, voice_name, gender):
@@ -635,7 +666,8 @@ def tts_fn(message, language_code, voice_name, gender):
                 out.write(response.audio_content)
                 bot.send_voice(message.chat.id, response.audio_content)
             stop_time = time.time()
-            logging.info(f"User {message.from_user.first_name}({message.from_user.id}) accessed speech generation. time taken: {str(round(start_time - stop_time, 2))}")
+            logging.info(
+                f"User {message.from_user.first_name}({message.from_user.id}) accessed speech generation. time taken: {str(round(start_time - stop_time, 2))}")
         except Exception as e:
             error = f"Error while generating speech: {str(e)}"
             logging.error(error)
@@ -683,7 +715,8 @@ def handle_default(message):
 
 def log_unrestricted(message):
     if message.from_user.id not in already_restriced_users:
-        bot.reply_to(message, "You are not allowed to use me! You can ask https://t.me/earth_down for permission. Your user meta data and all messages are logged!")
+        bot.reply_to(message,
+                     "You are not allowed to use me! You can ask https://t.me/earth_down for permission. Your user meta data and all messages are logged!")
         already_restriced_users.add(message.from_user.id)
     while not lock():
         time.sleep(1)

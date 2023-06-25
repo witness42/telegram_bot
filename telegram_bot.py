@@ -77,13 +77,13 @@ class Context:
         self.user_id = user_id
         self.context = [{"role": "system", "content": SYSTEM_MSG}]
 
-    def add_message(self, message):
+    def add_message(self, message) -> None:
         self.context.append(message)
 
-    def get_context(self):
+    def get_context(self) -> list:
         return self.context
 
-    def remove_message(self, message):
+    def remove_message(self, message) -> None:
         self.context.remove(message)
 
 
@@ -95,7 +95,7 @@ def message_to_list(text: str) -> list:
     return message_list
 
 
-def create_payment_object():
+def create_payment_object() -> paypalrestsdk.Payment:
     paypalrestsdk.configure({
         "mode": "sandbox",
         "client_id": os.environ.get("PAYPAL_CLIENT_ID"),
@@ -122,7 +122,7 @@ def create_payment_object():
 
 
 @bot.message_handler(commands=['subscribe'])
-def subscribe(message):
+def subscribe(message: telebot.types.Message) -> None:
     if message.from_user.id in admins:
         if message.from_user.id in allowed_users:
             bot.reply_to(message, "You are already subscribed!")
@@ -140,7 +140,7 @@ def subscribe(message):
 
 
 @bot.message_handler(commands=['log'])
-def send_log(message):
+def send_log(message: telebot.types.Message) -> None:
     if not message.from_user.id in allowed_users:
         log_unrestricted(message)
         return
@@ -164,7 +164,7 @@ def send_log(message):
 
 
 @bot.message_handler(commands=['recordings'])
-def send_recordings(message):
+def send_recordings(message: telebot.types.Message) -> None:
     if not message.from_user.id in allowed_users:
         log_unrestricted(message)
         return
@@ -178,7 +178,7 @@ def send_recordings(message):
 
 
 @bot.message_handler(commands=['adduser'])
-def add_user(message):
+def add_user(message: telebot.types.Message) -> None:
     if not message.from_user.id in allowed_users:
         log_unrestricted(message)
         return
@@ -214,7 +214,7 @@ def add_user(message):
 
 
 @bot.message_handler(commands=['removeuser'])
-def remove_user(message):
+def remove_user(message: telebot.types.Message) -> None:
     if not message.from_user.id in allowed_users:
         log_unrestricted(message)
         return
@@ -264,7 +264,7 @@ def remove_user(message):
 
 
 @bot.message_handler(commands=['restart'])
-def restart(message):
+def restart(message: telebot.types.Message) -> None:
     if not message.from_user.id in allowed_users:
         log_unrestricted(message)
         return
@@ -276,7 +276,7 @@ def restart(message):
 
 
 @bot.message_handler(commands=['stop'])
-def stop(message):
+def stop(message: telebot.types.Message) -> None:
     if not message.from_user.id in allowed_users:
         log_unrestricted(message)
         return
@@ -288,7 +288,7 @@ def stop(message):
 
 
 @bot.message_handler(commands=['reboot'])
-def reboot(message):
+def reboot(message: telebot.types.Message) -> None:
     if not message.from_user.id in allowed_users:
         log_unrestricted(message)
         return
@@ -300,7 +300,7 @@ def reboot(message):
 
 
 @bot.message_handler(commands=['ping'])
-def ping(message):
+def ping(message: telebot.types.Message) -> None:
     if not message.from_user.id in allowed_users:
         log_unrestricted(message)
         return
@@ -311,13 +311,13 @@ def ping(message):
 
 
 @bot.message_handler(commands=['start', 'help'])
-def send_welcome(message):
+def send_welcome(message: telebot.types.Message) -> None:
     if message.from_user.id in allowed_users:
         bot.reply_to(message, WELCOME_MSG)
 
 
 @bot.message_handler(commands=['forget'])
-def clear_context(message):
+def clear_context(message: telebot.types.Message) -> None:
     if message.from_user.id in allowed_users:
         if user_context.get(message.from_user.id, None) is None:
             bot.reply_to(message, NOT_FORGOTTEN_MSG)
@@ -329,7 +329,7 @@ def clear_context(message):
 
 
 @bot.message_handler(commands=[PERSONA_NAME])
-def send_message(message, transcript=None):
+def send_message(message: telebot.types.Message, transcript: str = None) -> None:
     if message.chat.type == "group" and transcript is None:
         return
     if message.from_user.id in allowed_users:
@@ -410,7 +410,7 @@ def send_message(message, transcript=None):
 
 
 @bot.message_handler(commands=['generate'])
-def generate(message):
+def generate(message: telebot.types.Message) -> None:
     if message.from_user.id in allowed_users:
         start_time = time.time()
         try:
@@ -449,7 +449,7 @@ def generate(message):
 
 
 @bot.message_handler(content_types=['photo'])
-def make_variation(message):
+def make_variation(message: telebot.types.Message) -> None:
     if message.from_user.id in allowed_users:
         start_time = time.time()
         if message.caption.lower() not in ["make variation", "make variations", "m"]:  # m is a shortcut
@@ -502,7 +502,7 @@ def make_variation(message):
 
 
 @bot.message_handler(content_types=['voice'])
-def voice_processing(message):
+def voice_processing(message: telebot.types.Message) -> None:
     if message.from_user.id in allowed_users:
         start_time = time.time()
         try:
@@ -536,7 +536,7 @@ def voice_processing(message):
         log_unrestricted(message)
 
 
-def deepl_translate(message, text, target_lang, reply=True) -> str:
+def deepl_translate(message: telebot.types.Message, text: str, target_lang: str, reply=True) -> str:
     url = 'https://api-free.deepl.com/v2/translate'
     payload = {'text': text, 'target_lang': target_lang}
     headers = {'Authorization': "DeepL-Auth-Key " + deepl_api_key,
@@ -554,7 +554,7 @@ def deepl_translate(message, text, target_lang, reply=True) -> str:
     return res["translations"][0]["text"]
 
 
-def translate_message(message, text, target_lang) -> None:
+def translate_message(message: telebot.types.Message, text: str, target_lang: str) -> None:
     if message.from_user.id in allowed_users:
         deepl_translate(message, text[4:], target_lang)
     else:
@@ -562,32 +562,32 @@ def translate_message(message, text, target_lang) -> None:
 
 
 @bot.message_handler(commands=['tge'])
-def translate_message_to_german(message):
+def translate_message_to_german(message: telebot.types.Message) -> None:
     translate_message(message, message.text, "DE")
 
 
 @bot.message_handler(commands=['ten'])
-def translate_message_to_english(message):
+def translate_message_to_english(message: telebot.types.Message) -> None:
     translate_message(message, message.text, "EN")
 
 
 @bot.message_handler(commands=['tfr'])
-def translate_message_to_english(message):
+def translate_message_to_english(message: telebot.types.Message) -> None:
     translate_message(message, message.text, "FR")
 
 
 @bot.message_handler(commands=['tes'])
-def translate_message_to_english(message):
+def translate_message_to_english(message: telebot.types.Message) -> None:
     translate_message(message, message.text, "ES")
 
 
 @bot.message_handler(commands=['tpl'])
-def translate_message_to_english(message):
+def translate_message_to_english(message: telebot.types.Message) -> None:
     translate_message(message, message.text, "PL")
 
 
 @bot.message_handler(content_types=['video'])
-def translate_video(message):
+def translate_video(message: telebot.types.Message) -> None:
     if message.from_user.id in allowed_users:
         start_time = time.time()
         try:
@@ -636,13 +636,14 @@ def translate_video(message):
         log_unrestricted(message)
 
 
-def translate_to_document(message, text, target_lang) -> None:
+def translate_to_document(message: telebot.types.Message, text, target_lang) -> None:
     translated_text = deepl_translate(message, text, target_lang, reply=False)
     file_uuid = str(uuid.uuid4())
     with open(f"{MAIN_PATH}{file_uuid}.txt", 'w') as doc:
         doc.write(translated_text)
     doc.close()
-    os.system(f"cat {MAIN_PATH}{file_uuid}.txt | iconv -f utf-8 -t iso-8859-1 -sc | enscript -X 88591 -o -| ps2pdf - {MAIN_PATH}{file_uuid}.pdf")
+    os.system(
+        f"cat {MAIN_PATH}{file_uuid}.txt | iconv -f utf-8 -t iso-8859-1 -sc | enscript -X 88591 -o -| ps2pdf - {MAIN_PATH}{file_uuid}.pdf")
     with open(f"{MAIN_PATH}{file_uuid}.pdf", "rb") as f:
         bot.send_document(message.chat.id, f)
     f.close()
@@ -651,7 +652,7 @@ def translate_to_document(message, text, target_lang) -> None:
 
 
 @bot.message_handler(content_types=['document'])
-def translate_document(message):
+def translate_document(message: telebot.types.Message) -> None:
     if message.from_user.id in allowed_users:
         start_time = time.time()
         file_type = message.document.mime_type.split('/')[1]
@@ -687,7 +688,7 @@ def translate_document(message):
         log_unrestricted(message)
 
 
-def tts_fn(message, language_code, voice_name, gender):
+def tts_fn(message: telebot.types.Message, language_code: str, voice_name: str, gender: tts.SsmlVoiceGender) -> None:
     if message.from_user.id in allowed_users:
         if message.text[7:] == "":
             bot.reply_to(message, "Please provide text to be spoken.")
@@ -725,32 +726,32 @@ def tts_fn(message, language_code, voice_name, gender):
 
 
 @bot.message_handler(commands=['ttsge'])
-def ttsg(message):
+def ttsg(message: telebot.types.Message) -> None:
     tts_fn(message, "de-DE", "de-DE-Neural2-C", tts.SsmlVoiceGender.FEMALE)
 
 
 @bot.message_handler(commands=['ttspl'])
-def ttspl(message):
+def ttspl(message: telebot.types.Message) -> None:
     tts_fn(message, "pl-PL", "pl-PL-Standard-D", tts.SsmlVoiceGender.FEMALE)
 
 
 @bot.message_handler(commands=['ttsfr'])
-def ttsfr(message):
+def ttsfr(message: telebot.types.Message) -> None:
     tts_fn(message, "fr-FR", "fr-FR-Neural2-C", tts.SsmlVoiceGender.FEMALE)
 
 
 @bot.message_handler(commands=['ttses'])
-def ttses(message):
+def ttses(message: telebot.types.Message) -> None:
     tts_fn(message, "es-ES", "es-US-News-F", tts.SsmlVoiceGender.FEMALE)
 
 
 @bot.message_handler(commands=['ttsen'])
-def ttsen(message):
+def ttsen(message: telebot.types.Message) -> None:
     tts_fn(message, "en-US", "en-US-Standard-F", tts.SsmlVoiceGender.FEMALE)
 
 
 @bot.message_handler(func=lambda message: True)
-def handle_default(message):
+def handle_default(message: telebot.types.Message) -> None:
     if message.from_user.id in allowed_users:
         if message.video is not None:
             translate_video(message)
@@ -760,7 +761,7 @@ def handle_default(message):
         log_unrestricted(message)
 
 
-def log_unrestricted(message):
+def log_unrestricted(message: telebot.types.Message) -> None:
     if message.from_user.id not in already_restriced_users:
         bot.reply_to(message,
                      "You are not allowed to use me! You can ask https://t.me/earth_down for permission. Your user meta data and all messages are logged!")
@@ -781,7 +782,7 @@ def debug_msg(msg: str) -> None:
 """ Create lock dir """
 
 
-def lock():
+def lock() -> bool:
     try:
         os.mkdir(LOCK_DIR)
     except FileExistsError:
@@ -792,7 +793,7 @@ def lock():
 """ Free lock dir """
 
 
-def remove_lock():
+def remove_lock() -> None:
     try:
         if os.path.exists(LOCK_DIR):
             os.rmdir(LOCK_DIR)

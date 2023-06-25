@@ -156,9 +156,9 @@ def send_log(message: telebot.types.Message) -> None:
         with open(f"{MAIN_PATH}{temp_uuid}.pdf", "rb") as f:
             bot.send_document(message.chat.id, f)
         f.close()
-        os.system(f"rm {MAIN_PATH}{temp_uuid}.log")
-        os.system(f"rm {MAIN_PATH}{output_uuid}.log")
-        os.system(f"rm {MAIN_PATH}{temp_uuid}.pdf")
+        os.remove(f"{MAIN_PATH}{temp_uuid}.log")
+        os.remove(f"{MAIN_PATH}{output_uuid}.log")
+        os.remove(f"{MAIN_PATH}{temp_uuid}.pdf")
     else:
         send_message(message)
 
@@ -675,8 +675,8 @@ def translate_document(message: telebot.types.Message) -> None:
                 text = doc.read()
                 translate_to_document(message, text, "DE")
             doc.close()
-            os.system(f"rm {MAIN_PATH}{file_uuid}.txt")
-            os.system(f"rm {MAIN_PATH}{file_uuid}.pdf")
+            os.remove(f"{MAIN_PATH}{file_uuid}.txt")
+            os.remove(f"{MAIN_PATH}{file_uuid}.pdf")
         elif file_type is not None:
             bot.reply_to(message,
                          f"Unsupported file type: {file_type}. Reach out to https://t.me/earth_down for support.")

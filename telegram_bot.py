@@ -155,6 +155,7 @@ def send_log(message):
             f"cat {MAIN_PATH}{temp_uuid}.log | iconv -f utf-8 -t iso-8859-1 -sc | enscript -X 88591 -o -| ps2pdf - {MAIN_PATH}{temp_uuid}.pdf")
         with open(f"{MAIN_PATH}{temp_uuid}.pdf", "rb") as f:
             bot.send_document(message.chat.id, f)
+        f.close()
         os.system(f"rm {MAIN_PATH}{temp_uuid}.log")
         os.system(f"rm {MAIN_PATH}{output_uuid}.log")
         os.system(f"rm {MAIN_PATH}{temp_uuid}.pdf")
@@ -171,6 +172,7 @@ def send_recordings(message):
         for file in os.listdir(f"{MAIN_PATH}recordings"):
             with open(f"{MAIN_PATH}recordings/{file}", "rb") as f:
                 bot.send_voice(message.chat.id, f)
+            f.close()
     else:
         send_message(message)
 
@@ -196,8 +198,10 @@ def add_user(message):
                             new_file.append(nline)
                         else:
                             new_file.append(line)
+                f.close()
                 with open(f"{MAIN_PATH}{CONFIG_NAME}.conf", "w") as f:
                     f.writelines(new_file)
+                f.close()
                 bot.reply_to(message, f"Added user {message.text.split()[1]}")
                 logging.info(f"Added user {message.text.split()[1]}")
             except ValueError as e:
@@ -246,8 +250,10 @@ def remove_user(message):
                                 bot.reply_to(message, "User could not be found! Was the user allowed before?")
                         else:
                             new_file.append(line)
+                f.close()
                 with open(f"{MAIN_PATH}{CONFIG_NAME}.conf", 'w') as f:
                     f.writelines(new_file)
+                f.close()
             except ValueError as e:
                 bot.reply_to(message, "Please enter a valid user id!")
                 bot.reply_to(message, str(e))
@@ -466,6 +472,7 @@ def make_variation(message):
             image_uuid = str(uuid.uuid4())
             with open(f"{MAIN_PATH}{image_uuid}.png", 'wb') as image:
                 image.write(downloaded_file)
+            image.close()
             os.system(f"convert {MAIN_PATH}{image_uuid}.png -resize 1024x1024 {MAIN_PATH}{image_uuid}.png")
             try:
                 response = openai.Image.create_variation(
@@ -504,6 +511,7 @@ def voice_processing(message):
             audio_uuid = str(uuid.uuid4())
             with open(f"{MAIN_PATH}{audio_uuid}.ogg", 'wb') as audio_file:
                 audio_file.write(downloaded_file)
+            audio_file.close()
             os.system(
                 f"ffmpeg -i {MAIN_PATH}{audio_uuid}.ogg -codec:a libmp3lame -qscale:a 2 {MAIN_PATH}{audio_uuid}.mp3")
             with open(f"{MAIN_PATH}{audio_uuid}.mp3", 'rb') as audio_file:
@@ -512,6 +520,7 @@ def voice_processing(message):
                     bot.send_message(message.chat.id, transcript["text"])
                 else:
                     send_message(message, transcript["text"])
+            audio_file.close()
             os.system(
                 f"mv {MAIN_PATH}{audio_uuid}.mp3 {MAIN_PATH}recordings/{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.mp3")
             os.remove(f"{MAIN_PATH}{audio_uuid}.ogg")
@@ -588,10 +597,12 @@ def translate_video(message):
             file_uuid = str(uuid.uuid4())
             with open(f"{MAIN_PATH}{file_uuid}.mp4", 'wb') as video_file:
                 video_file.write(downloaded_file)
+            video_file.close()
             os.system(f"ffmpeg -i {MAIN_PATH}{file_uuid}.mp4 {MAIN_PATH}{file_uuid}.mp3")
             os.remove(f"{MAIN_PATH}{file_uuid}.mp4")
             with open(f"{MAIN_PATH}{file_uuid}.mp3", 'rb') as audio_file:
                 transcript = openai.Audio.translate("whisper-1", audio_file)
+            audio_file.close()
             os.remove(f"{MAIN_PATH}{file_uuid}.mp3")
             if message.caption is not None:
                 if message.caption.lower() in ["tg", "translate to german"]:
@@ -634,6 +645,7 @@ def translate_to_document(message, text, target_lang) -> None:
     os.system(f"cat {MAIN_PATH}{file_uuid}.txt | iconv -f utf-8 -t iso-8859-1 -sc | enscript -X 88591 -o -| ps2pdf - {MAIN_PATH}{file_uuid}.pdf")
     with open(f"{MAIN_PATH}{file_uuid}.pdf", "rb") as f:
         bot.send_document(message.chat.id, f)
+    f.close()
     os.remove(f"{MAIN_PATH}{file_uuid}.txt")
     os.remove(f"{MAIN_PATH}{file_uuid}.pdf")
 
@@ -696,6 +708,7 @@ def tts_fn(message, language_code, voice_name, gender):
             with open(filename, 'wb') as out:
                 out.write(response.audio_content)
                 bot.send_voice(message.chat.id, response.audio_content)
+            out.close()
             stop_time = time.time()
             logging.info(
                 f"User {message.from_user.first_name}({message.from_user.id}) accessed speech generation. time taken: {str(round(start_time - stop_time, 2))}")

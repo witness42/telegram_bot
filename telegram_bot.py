@@ -643,7 +643,7 @@ def translate_to_document(message: telebot.types.Message, text, target_lang) -> 
         doc.write(translated_text)
     doc.close()
     os.system(
-        f"cat {MAIN_PATH}{file_uuid}.txt | iconv -f utf-8 -t iso-8859-1 -sc | enscript -X 88591 -o -| ps2pdf - {MAIN_PATH}{file_uuid}.pdf")
+        f"pandoc {MAIN_PATH}{file_uuid}.txt -o {MAIN_PATH}{file_uuid}.pdf")
     with open(f"{MAIN_PATH}{file_uuid}.pdf", "rb") as f:
         bot.send_document(message.chat.id, f)
     f.close()

@@ -202,7 +202,7 @@ def add_user(message):
                 logging.info(f"Added user {message.text.split()[1]}")
             except ValueError as e:
                 bot.reply_to(message, "Please enter a valid user id!")
-                bot.reply_to(message, e)
+                bot.reply_to(message, str(e))
         else:
             bot.reply_to(message, "Please enter a user id!")
     else:
@@ -250,7 +250,7 @@ def remove_user(message):
                     f.writelines(new_file)
             except ValueError as e:
                 bot.reply_to(message, "Please enter a valid user id!")
-                bot.reply_to(message, e)
+                bot.reply_to(message, str(e))
         else:
             bot.reply_to(message, "Please enter a user id!")
     else:

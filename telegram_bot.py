@@ -626,20 +626,29 @@ def translate_video(message):
 @bot.message_handler(content_types=['document'])
 def translate_document(message):
     if message.from_user.id in allowed_users:
-        logging.info(f"Translating document for {message.from_user.first_name}({message.from_user.id})")
-        logging.info(f"File type: {message.document.mime_type}")
+        file_type = message.document.mime_type.split('/')[1]
+        logging.info(f"Translating document with file type: {file_type} for {message.from_user.first_name}({message.from_user.id})")
         file_info = bot.get_file(message.document.file_id)
         downloaded_file = bot.download_file(file_info.file_path)
         file_uuid = str(uuid.uuid4())
-        with open(f"{MAIN_PATH}{file_uuid}.{message.document.mime_type}", 'wb') as doc:
+        with open(f"{MAIN_PATH}{file_uuid}.{file_type}", 'wb') as doc:
             doc.write(downloaded_file)
         doc.close()
-        if message.document.mime_type == "pdf":
+        if file_type == "txt":
+            with open(f"{MAIN_PATH}{file_uuid}.txt", 'r') as doc:
+                text = doc.read()
+                translate_message(message, text, "DE")
+            doc.close()
+        elif file_type == "pdf":
             os.system(f"pdftotext {MAIN_PATH}{file_uuid}.pdf {MAIN_PATH}{file_uuid}.txt")
             with open(f"{MAIN_PATH}{file_uuid}.txt", 'r') as doc:
                 text = doc.read()
                 translate_message(message, text, "DE")
             doc.close()
+            os.system(f"rm {MAIN_PATH}{file_uuid}.txt")
+            os.system(f"rm {MAIN_PATH}{file_uuid}.pdf")
+        elif file_type is not None:
+            bot.reply_to(message, f"Unsupported file type: {file_type}. Reach out to https://t.me/earth_down for support.")
     else:
         log_unrestricted(message)
 

@@ -527,7 +527,7 @@ def voice_processing(message):
         log_unrestricted(message)
 
 
-def deepl_translate(message, text, target_lang) -> None:
+def deepl_translate(message, text, target_lang, reply=True) -> str:
     url = 'https://api-free.deepl.com/v2/translate'
     payload = {'text': text, 'target_lang': target_lang}
     headers = {'Authorization': "DeepL-Auth-Key " + deepl_api_key,
@@ -538,9 +538,11 @@ def deepl_translate(message, text, target_lang) -> None:
     res = json.loads(response.text)
     logging.info(
         f"Translated text for {message.from_user.first_name}({message.from_user.id}): {res['translations'][0]['text']}")
-    output = message_to_list(res["translations"][0]["text"])
-    for i in output:
-        bot.reply_to(message, i)
+    if reply:
+        output = message_to_list(res["translations"][0]["text"])
+        for i in output:
+            bot.reply_to(message, i)
+    return res["translations"][0]["text"]
 
 
 def translate_message(message, text, target_lang) -> None:
@@ -623,11 +625,26 @@ def translate_video(message):
         log_unrestricted(message)
 
 
+def translate_to_document(message, text, target_lang) -> None:
+    translated_text = deepl_translate(message, text, target_lang, reply=False)
+    file_uuid = str(uuid.uuid4())
+    with open(f"{MAIN_PATH}{file_uuid}.txt", 'w') as doc:
+        doc.write(translated_text)
+    doc.close()
+    os.system(f"cat {MAIN_PATH}{file_uuid}.txt | iconv -f utf-8 -t iso-8859-1 -sc | enscript -X 88591 -o -| ps2pdf - {MAIN_PATH}{file_uuid}.pdf")
+    with open(f"{MAIN_PATH}{file_uuid}.pdf", "rb") as f:
+        bot.send_document(message.chat.id, f)
+    os.remove(f"{MAIN_PATH}{file_uuid}.txt")
+    os.remove(f"{MAIN_PATH}{file_uuid}.pdf")
+
+
 @bot.message_handler(content_types=['document'])
 def translate_document(message):
     if message.from_user.id in allowed_users:
+        start_time = time.time()
         file_type = message.document.mime_type.split('/')[1]
-        logging.info(f"Translating document with file type: {file_type} for {message.from_user.first_name}({message.from_user.id})")
+        logging.info(
+            f"Translating document with file type: {file_type} for {message.from_user.first_name}({message.from_user.id})")
         file_info = bot.get_file(message.document.file_id)
         downloaded_file = bot.download_file(file_info.file_path)
         file_uuid = str(uuid.uuid4())
@@ -637,18 +654,23 @@ def translate_document(message):
         if file_type == "txt":
             with open(f"{MAIN_PATH}{file_uuid}.txt", 'r') as doc:
                 text = doc.read()
-                translate_message(message, text, "DE")
+                translate_to_document(message, text, "DE")
             doc.close()
         elif file_type == "pdf":
             os.system(f"pdftotext {MAIN_PATH}{file_uuid}.pdf {MAIN_PATH}{file_uuid}.txt")
             with open(f"{MAIN_PATH}{file_uuid}.txt", 'r') as doc:
                 text = doc.read()
-                translate_message(message, text, "DE")
+                translate_to_document(message, text, "DE")
             doc.close()
             os.system(f"rm {MAIN_PATH}{file_uuid}.txt")
             os.system(f"rm {MAIN_PATH}{file_uuid}.pdf")
         elif file_type is not None:
-            bot.reply_to(message, f"Unsupported file type: {file_type}. Reach out to https://t.me/earth_down for support.")
+            bot.reply_to(message,
+                         f"Unsupported file type: {file_type}. Reach out to https://t.me/earth_down for support.")
+            logging.info(
+                f"Unsupported file type: {file_type} for {message.from_user.first_name}({message.from_user.id})")
+        stop_time = time.time()
+        logging.info("time taken for document translation: " + str(round(start_time - stop_time, 2)) + " seconds")
     else:
         log_unrestricted(message)
 

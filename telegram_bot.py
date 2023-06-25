@@ -689,6 +689,9 @@ def translate_document(message):
 
 def tts_fn(message, language_code, voice_name, gender):
     if message.from_user.id in allowed_users:
+        if message.text[7:] == "":
+            bot.reply_to(message, "Please provide text to be spoken.")
+            return
         start_time = time.time()
         try:
             text_input = tts.SynthesisInput(text=message.text[7:])

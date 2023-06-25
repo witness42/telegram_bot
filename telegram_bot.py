@@ -642,9 +642,8 @@ def translate_to_document(message: telebot.types.Message, text, target_lang) -> 
     with open(f"{MAIN_PATH}{file_uuid}.txt", 'w') as doc:
         doc.write(translated_text)
     doc.close()
-    os.system(
-        f"pandoc {MAIN_PATH}{file_uuid}.txt -o {MAIN_PATH}{file_uuid}.pdf")
-    with open(f"{MAIN_PATH}{file_uuid}.pdf", "rb") as f:
+    os.system(f"pandoc {MAIN_PATH}{file_uuid}.txt -o {MAIN_PATH}{file_uuid}.pdf")
+    with open(f"{MAIN_PATH}{file_uuid}.pdf", 'r') as f:
         bot.send_document(message.chat.id, f)
     f.close()
     os.remove(f"{MAIN_PATH}{file_uuid}.txt")

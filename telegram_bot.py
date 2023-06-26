@@ -17,6 +17,7 @@ import sys
 import time
 import uuid
 
+from reportlab.pdfgen import canvas
 import PyPDF2
 import google.cloud.texttospeech as tts
 import openai
@@ -705,10 +706,18 @@ def translate_document(message: telebot.types.Message) -> None:
                 pages = len(pdf_reader.pages)
                 for i in range(pages):
                     pdf_page = pdf_reader.pages[i]
-                    text = deepl_translate(message, pdf_page.extractText(), "DE", reply=False)
-                    new_page = PyPDF2.pdf.PageObject.createBlankPage(None, 72, 72)
-                    new_page.addText(text)
-                    pdf_writer.addPage(new_page)
+                    text = deepl_translate(message, pdf_page.extract_text(), "DE", reply=False)
+                    new_page = pdf_writer.add_blank_page(float(pdf_page.mediaBox.width), float(pdf_page.mediaBox.height))
+                    c = canvas.Canvas("temp.pdf")
+                    c.drawString(100, 100, text)
+                    c.save()
+                    with open("temp.pdf", "rb") as temp_file:
+                        temp_reader = PyPDF2.PdfReader(temp_file)
+                        temp_page = temp_reader.pages[0]
+                        new_page.merge_page(temp_page)
+                    temp_file.close()
+                os.remove("temp.pdf")
+                doc.close()
                 with open(f"{MAIN_PATH}{file_uuid}.pdf", "wb") as out:
                     bot.send_document(message.chat.id, out)
             doc.close()

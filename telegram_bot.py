@@ -23,9 +23,11 @@ import json
 import paypalrestsdk
 import google.cloud.texttospeech as tts
 
+# --- ENV VARS ---
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 deepl_api_key = os.environ.get("DEEPL_API_KEY")
 
+# --- COMMAND LINE ARGS ---
 if len(sys.argv) != 3:
     print(
         "Usage: python3.9 telegram_bot.py <main_folder_path>(e.g. /home/dummyuser/shitty_telegram_bot/) <config_name> (e.g. shitty_telegram_bot)")
@@ -33,7 +35,7 @@ if len(sys.argv) != 3:
 MAIN_PATH = sys.argv[1]
 CONFIG_NAME = sys.argv[2]
 
-""" Read config file """
+# --- CONFIG ---
 config = configparser.ConfigParser()
 config.read(f"{MAIN_PATH}{CONFIG_NAME}.conf")
 
@@ -62,6 +64,7 @@ ENCODING = tiktoken.encoding_for_model(MODEL)
 
 bot = telebot.TeleBot(config.get("telegram", "token"))
 
+# --- ACL ---
 user_context = {}
 subscribed_users = set([int(x) for x in config.get("acl", "subscribed").split(",")])
 admins = set([int(x) for x in config.get("acl", "admins").split(",")])
@@ -72,6 +75,7 @@ already_restriced_users = set()
 logging.info(f'{bot.user.username} is ready!')
 
 
+# --- USER CONTEXT ---
 class Context:
     def __init__(self, user_id):
         self.user_id = user_id
@@ -87,6 +91,7 @@ class Context:
         self.context.remove(message)
 
 
+# --- SPLIT TEXT FOR TELEGRAM API ---
 def message_to_list(text: str) -> list:
     message_chunks = math.floor(len(text) / 4096) + 1
     message_list = []
@@ -95,6 +100,7 @@ def message_to_list(text: str) -> list:
     return message_list
 
 
+# --- PAYPAL ---
 def create_payment_object() -> paypalrestsdk.Payment:
     paypalrestsdk.configure({
         "mode": "sandbox",
@@ -139,6 +145,7 @@ def subscribe(message: telebot.types.Message) -> None:
             bot.reply_to(message, "Something went wrong with the payment. Please try again later.")
 
 
+# --- ADMIN COMMANDS ---
 @bot.message_handler(commands=['log'])
 def send_log(message: telebot.types.Message) -> None:
     if not message.from_user.id in allowed_users:
@@ -310,6 +317,7 @@ def ping(message: telebot.types.Message) -> None:
         send_message(message)
 
 
+# --- /COMMANDS ---
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message: telebot.types.Message) -> None:
     if message.from_user.id in allowed_users:
@@ -409,6 +417,7 @@ def send_message(message: telebot.types.Message, transcript: str = None) -> None
         log_unrestricted(message)
 
 
+# --- IMAGE GENERATION ---
 @bot.message_handler(commands=['generate'])
 def generate(message: telebot.types.Message) -> None:
     if message.from_user.id in allowed_users:
@@ -501,6 +510,7 @@ def make_variation(message: telebot.types.Message) -> None:
         log_unrestricted(message)
 
 
+# --- AUDIO TRANSCRIPTION ---
 @bot.message_handler(content_types=['voice'])
 def voice_processing(message: telebot.types.Message) -> None:
     if message.from_user.id in allowed_users:
@@ -536,6 +546,7 @@ def voice_processing(message: telebot.types.Message) -> None:
         log_unrestricted(message)
 
 
+# --- TRANSLATION ---
 def deepl_translate(message: telebot.types.Message, text: str, target_lang: str, reply=True) -> str:
     url = 'https://api-free.deepl.com/v2/translate'
     payload = {'text': text, 'target_lang': target_lang}
@@ -689,6 +700,7 @@ def translate_document(message: telebot.types.Message) -> None:
         log_unrestricted(message)
 
 
+# --- TEXT TO SPEECH ---
 def tts_fn(message: telebot.types.Message, language_code: str, voice_name: str, gender: tts.SsmlVoiceGender) -> None:
     if message.from_user.id in allowed_users:
         if message.text[7:] == "":
@@ -762,6 +774,7 @@ def handle_default(message: telebot.types.Message) -> None:
         log_unrestricted(message)
 
 
+# --- UNRESTRICTED ACCESS ---
 def log_unrestricted(message: telebot.types.Message) -> None:
     if message.from_user.id not in already_restriced_users:
         bot.reply_to(message,
@@ -774,15 +787,14 @@ def log_unrestricted(message: telebot.types.Message) -> None:
     debug_msg("A stranger tried to use me:\n" + str(message))
 
 
+# --- DEBUG ---
 def debug_msg(msg: str) -> None:
     if DEBUG:
         for admin in admins:
             bot.send_message(admin, msg)
 
 
-""" Create lock dir """
-
-
+# --- LOCKING ---
 def lock() -> bool:
     try:
         os.mkdir(LOCK_DIR)
@@ -791,9 +803,7 @@ def lock() -> bool:
     return True
 
 
-""" Free lock dir """
-
-
+# --- REMOVE LOCK ---
 def remove_lock() -> None:
     try:
         if os.path.exists(LOCK_DIR):
@@ -802,5 +812,5 @@ def remove_lock() -> None:
         logging.critical(f"Cannot delete lock dir '{LOCK_DIR}': {e}")
 
 
-# Start bot
+# --- Start bot ---
 bot.polling()

@@ -666,7 +666,7 @@ def translate_video(message: telebot.types.Message) -> None:
 
 def translate_to_document(message: telebot.types.Message, text: str, target_lang: str) -> None:
     logging.info(f"Extracted text for {message.from_user.first_name}({message.from_user.id}): {text}")
-    translated_text = deepl_translate(message, text[2:-1], target_lang, reply=False)
+    translated_text = deepl_translate(message, text, target_lang, reply=False)
     file_uuid = str(uuid.uuid4())
     with open(f"{MAIN_PATH}{file_uuid}.txt", 'w') as doc:
         doc.write(translated_text)
@@ -691,24 +691,25 @@ def translate_document(message: telebot.types.Message) -> None:
         file_uuid = str(uuid.uuid4())
         if file_type == "plain":
             file_type = "txt"
-        with open(f"{MAIN_PATH}{file_uuid}.{file_type}", 'w') as doc:
-            doc.write(str(downloaded_file))
-        doc.close()
-        if file_type == "txt":
-            with open(f"{MAIN_PATH}{file_uuid}.txt", 'r') as doc:
-                text = doc.read()
-                translate_to_document(message, text, "DE")
-            doc.close()
-        elif file_type == "pdf":
-            with open(f"{MAIN_PATH}{file_uuid}.pdf", 'r') as doc:
-                text = doc.read()
-            translate_to_document(message, text, "DE")
-        elif file_type is not None:
-            bot.reply_to(message,
-                         f"Unsupported file type: {file_type}. Reach out to https://t.me/earth_down for support.")
-            logging.info(
-                f"Unsupported file type: {file_type} for {message.from_user.first_name}({message.from_user.id})")
-        os.remove(f"{MAIN_PATH}{file_uuid}.{file_type}")
+        # with open(f"{MAIN_PATH}{file_uuid}.{file_type}", 'w') as doc:
+        #     doc.write()
+        # doc.close()
+        translate_to_document(message, str(downloaded_file)[2:-1], "DE")
+        # if file_type == "txt":
+        #     with open(f"{MAIN_PATH}{file_uuid}.txt", 'r') as doc:
+        #         text = doc.read()
+        #         translate_to_document(message, text, "DE")
+        #     doc.close()
+        # elif file_type == "pdf":
+        #     with open(f"{MAIN_PATH}{file_uuid}.pdf", 'rb') as doc:
+        #         text = slate.PDF(doc)
+        #     translate_to_document(message, text, "DE")
+        # elif file_type is not None:
+        #     bot.reply_to(message,
+        #                  f"Unsupported file type: {file_type}. Reach out to https://t.me/earth_down for support.")
+        #     logging.info(
+        #         f"Unsupported file type: {file_type} for {message.from_user.first_name}({message.from_user.id})")
+        # os.remove(f"{MAIN_PATH}{file_uuid}.{file_type}")
         stop_time = time.time()
         logging.info("time taken for document translation: " + str(round(start_time - stop_time, 2)) + " seconds")
     else:

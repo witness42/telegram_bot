@@ -706,7 +706,7 @@ def translate_document(message: telebot.types.Message) -> None:
                 for i in range(pages):
                     pdf_page = pdf_reader.pages[i]
                     text += pdf_page.extract_text()
-                translate_to_document(message, text, "DE")
+            translate_to_document(message, text, "DE")
         elif file_type is not None:
             bot.reply_to(message,
                          f"Unsupported file type: {file_type}. Reach out to https://t.me/earth_down for support.")

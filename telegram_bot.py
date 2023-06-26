@@ -17,7 +17,6 @@ import sys
 import time
 import uuid
 
-from reportlab.pdfgen import canvas
 import PyPDF2
 import google.cloud.texttospeech as tts
 import openai
@@ -702,32 +701,18 @@ def translate_document(message: telebot.types.Message) -> None:
         elif file_type == "pdf":
             with open(f"{MAIN_PATH}{file_uuid}.pdf", "rb") as doc:
                 pdf_reader = PyPDF2.PdfReader(doc)
-                pdf_writer = PyPDF2.PdfWriter()
                 pages = len(pdf_reader.pages)
+                text = ""
                 for i in range(pages):
                     pdf_page = pdf_reader.pages[i]
-                    text = deepl_translate(message, pdf_page.extract_text(), "DE", reply=False)
-                    new_page = pdf_writer.add_blank_page(float(pdf_page.mediabox.width), float(pdf_page.mediabox.height))
-                    c = canvas.Canvas("temp.pdf")
-                    c.drawString(100, 100, text)
-                    c.save()
-                    with open("temp.pdf", "rb") as temp_file:
-                        temp_reader = PyPDF2.PdfReader(temp_file)
-                        temp_page = temp_reader.pages[0]
-                        new_page.merge_page(temp_page)
-                    temp_file.close()
-                os.remove("temp.pdf")
-                doc.close()
-                with open(f"{MAIN_PATH}{file_uuid}.pdf", "wb") as out:
-                    bot.send_document(message.chat.id, out)
-            doc.close()
-            os.remove(f"{MAIN_PATH}{file_uuid}.txt")
-            os.remove(f"{MAIN_PATH}{file_uuid}.pdf")
+                    text += pdf_page.extract_text()
+                translate_to_document(message, text, "DE")
         elif file_type is not None:
             bot.reply_to(message,
                          f"Unsupported file type: {file_type}. Reach out to https://t.me/earth_down for support.")
             logging.info(
                 f"Unsupported file type: {file_type} for {message.from_user.first_name}({message.from_user.id})")
+        os.remove(f"{MAIN_PATH}{file_uuid}.{file_type}")
         stop_time = time.time()
         logging.info("time taken for document translation: " + str(round(start_time - stop_time, 2)) + " seconds")
     else:

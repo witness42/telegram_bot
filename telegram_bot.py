@@ -698,9 +698,9 @@ def translate_document(message: telebot.types.Message) -> None:
             doc.close()
         elif file_type == "pdf":
             os.system(f"pdftotext {MAIN_PATH}{file_uuid}.pdf {MAIN_PATH}{file_uuid}.txt")
-            with open(f"{MAIN_PATH}{file_uuid}.txt", 'r') as doc:
+            with open(f"{MAIN_PATH}{file_uuid}.txt", "rb") as doc:
                 text = doc.read()
-                translate_to_document(message, text, "DE")
+                translate_to_document(message, str(text), "DE")
             doc.close()
             os.remove(f"{MAIN_PATH}{file_uuid}.txt")
             os.remove(f"{MAIN_PATH}{file_uuid}.pdf")

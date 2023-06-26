@@ -702,7 +702,7 @@ def translate_document(message: telebot.types.Message) -> None:
             with open(f"{MAIN_PATH}{file_uuid}.pdf", "rb") as doc:
                 pdf_reader = PyPDF2.PdfReader(doc)
                 pdf_writer = PyPDF2.PdfWriter()
-                pages = pdf_reader.numPages
+                pages = len(pdf_reader.pages)
                 for i in range(pages):
                     pdf_page = pdf_reader.getPage(i)
                     text = deepl_translate(message, pdf_page.extractText(), "DE", reply=False)

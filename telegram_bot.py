@@ -700,8 +700,8 @@ def translate_document(message: telebot.types.Message) -> None:
             doc.close()
         elif file_type == "pdf":
             with open(f"{MAIN_PATH}{file_uuid}.pdf", "rb") as doc:
-                pdf_reader = PyPDF2.PdfFileReader(doc)
-                pdf_writer = PyPDF2.PdfFileWriter()
+                pdf_reader = PyPDF2.PdfReader(doc)
+                pdf_writer = PyPDF2.PdfWriter()
                 pages = pdf_reader.numPages
                 for i in range(pages):
                     pdf_page = pdf_reader.getPage(i)

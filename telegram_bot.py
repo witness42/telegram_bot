@@ -148,7 +148,7 @@ def subscribe(message: telebot.types.Message) -> None:
 # --- ADMIN COMMANDS ---
 @bot.message_handler(commands=['log'])
 def send_log(message: telebot.types.Message) -> None:
-    if not message.from_user.id in allowed_users:
+    if message.from_user.id not in allowed_users:
         log_unrestricted(message)
         return
     if message.from_user.id in admins:
@@ -172,7 +172,7 @@ def send_log(message: telebot.types.Message) -> None:
 
 @bot.message_handler(commands=['recordings'])
 def send_recordings(message: telebot.types.Message) -> None:
-    if not message.from_user.id in allowed_users:
+    if message.from_user.id not in allowed_users:
         log_unrestricted(message)
         return
     if message.from_user.id in admins:
@@ -186,7 +186,7 @@ def send_recordings(message: telebot.types.Message) -> None:
 
 @bot.message_handler(commands=['adduser'])
 def add_user(message: telebot.types.Message) -> None:
-    if not message.from_user.id in allowed_users:
+    if message.from_user.id not in allowed_users:
         log_unrestricted(message)
         return
     if message.from_user.id in admins:
@@ -222,7 +222,7 @@ def add_user(message: telebot.types.Message) -> None:
 
 @bot.message_handler(commands=['removeuser'])
 def remove_user(message: telebot.types.Message) -> None:
-    if not message.from_user.id in allowed_users:
+    if message.from_user.id not in allowed_users:
         log_unrestricted(message)
         return
     if message.from_user.id in admins:
@@ -272,7 +272,7 @@ def remove_user(message: telebot.types.Message) -> None:
 
 @bot.message_handler(commands=['restart'])
 def restart(message: telebot.types.Message) -> None:
-    if not message.from_user.id in allowed_users:
+    if message.from_user.id not in allowed_users:
         log_unrestricted(message)
         return
     if message.from_user.id in admins:
@@ -284,7 +284,7 @@ def restart(message: telebot.types.Message) -> None:
 
 @bot.message_handler(commands=['stop'])
 def stop(message: telebot.types.Message) -> None:
-    if not message.from_user.id in allowed_users:
+    if message.from_user.id not in allowed_users:
         log_unrestricted(message)
         return
     if message.from_user.id in admins:
@@ -296,7 +296,7 @@ def stop(message: telebot.types.Message) -> None:
 
 @bot.message_handler(commands=['reboot'])
 def reboot(message: telebot.types.Message) -> None:
-    if not message.from_user.id in allowed_users:
+    if message.from_user.id not in allowed_users:
         log_unrestricted(message)
         return
     if message.from_user.id in admins:
@@ -308,7 +308,7 @@ def reboot(message: telebot.types.Message) -> None:
 
 @bot.message_handler(commands=['ping'])
 def ping(message: telebot.types.Message) -> None:
-    if not message.from_user.id in allowed_users:
+    if message.from_user.id not in allowed_users:
         log_unrestricted(message)
         return
     if message.from_user.id in admins:

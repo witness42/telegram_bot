@@ -7,21 +7,23 @@ DESCRIPTION = "Telegram Bot for the OpenAI API"
 TODO: web crawling, activate window method, document translation, if more users import asyncio and use locking everywhere
 """
 
+import configparser
+import datetime
+import json
 import logging
+import math
 import os
 import sys
-import math
 import time
 import uuid
-import datetime
-import telebot
-import openai
-import tiktoken
-import configparser
-import requests
-import json
-import paypalrestsdk
+
+import PyPDF2
 import google.cloud.texttospeech as tts
+import openai
+import paypalrestsdk
+import requests
+import telebot
+import tiktoken
 
 # --- ENV VARS ---
 openai.api_key = os.environ.get("OPENAI_API_KEY")
@@ -697,10 +699,18 @@ def translate_document(message: telebot.types.Message) -> None:
                 translate_to_document(message, text, "DE")
             doc.close()
         elif file_type == "pdf":
-            os.system(f"pdftotext {MAIN_PATH}{file_uuid}.pdf {MAIN_PATH}{file_uuid}.txt")
-            with open(f"{MAIN_PATH}{file_uuid}.txt", "rb") as doc:
-                text = doc.read()
-                translate_to_document(message, str(text), "DE")
+            with open(f"{MAIN_PATH}{file_uuid}.pdf", "rb") as doc:
+                pdf_reader = PyPDF2.PdfFileReader(doc)
+                pdf_writer = PyPDF2.PdfFileWriter()
+                pages = pdf_reader.numPages
+                for i in range(pages):
+                    pdf_page = pdf_reader.getPage(i)
+                    text = deepl_translate(message, pdf_page.extractText(), "DE", reply=False)
+                    new_page = PyPDF2.pdf.PageObject.createBlankPage(None, 72, 72)
+                    new_page.addText(text)
+                    pdf_writer.addPage(new_page)
+                with open(f"{MAIN_PATH}{file_uuid}.pdf", "wb") as out:
+                    bot.send_document(message.chat.id, out)
             doc.close()
             os.remove(f"{MAIN_PATH}{file_uuid}.txt")
             os.remove(f"{MAIN_PATH}{file_uuid}.pdf")

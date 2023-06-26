@@ -707,7 +707,7 @@ def translate_document(message: telebot.types.Message) -> None:
                 for i in range(pages):
                     pdf_page = pdf_reader.pages[i]
                     text = deepl_translate(message, pdf_page.extract_text(), "DE", reply=False)
-                    new_page = pdf_writer.add_blank_page(float(pdf_page.mediaBox.width), float(pdf_page.mediaBox.height))
+                    new_page = pdf_writer.add_blank_page(float(pdf_page.mediabox.width), float(pdf_page.mediabox.height))
                     c = canvas.Canvas("temp.pdf")
                     c.drawString(100, 100, text)
                     c.save()

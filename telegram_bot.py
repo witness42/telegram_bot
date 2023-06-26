@@ -700,7 +700,7 @@ def translate_document(message: telebot.types.Message) -> None:
                 translate_to_document(message, text, "DE")
             doc.close()
         elif file_type == "pdf":
-            with open(f"{MAIN_PATH}{file_uuid}.pdf", 'r', encoding="UTF-8") as doc:
+            with open(f"{MAIN_PATH}{file_uuid}.pdf", 'r', encoding="UTF-8", errors="ignore") as doc:
                 text = slate.PDF(doc)
             translate_to_document(message, text, "DE")
         elif file_type is not None:

@@ -170,6 +170,21 @@ def send_log(message: telebot.types.Message) -> None:
         send_message(message)
 
 
+@bot.message_handler(commands=['docs'])
+def send_docs(message: telebot.types.Message) -> None:
+    if message.from_user.id not in allowed_users:
+        log_unrestricted(message)
+        return
+    if message.from_user.id in admins:
+        for i in os.listdir(f"{MAIN_PATH}"):
+            if i.endswith(".pdf") or i.endswith("txt"):
+                with open(f"{MAIN_PATH}{i}", "rb") as f:
+                    bot.send_document(message.chat.id, f)
+                f.close()
+    else:
+        send_message(message)
+
+
 @bot.message_handler(commands=['recordings'])
 def send_recordings(message: telebot.types.Message) -> None:
     if message.from_user.id not in allowed_users:

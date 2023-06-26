@@ -704,7 +704,7 @@ def translate_document(message: telebot.types.Message) -> None:
                 pdf_writer = PyPDF2.PdfWriter()
                 pages = len(pdf_reader.pages)
                 for i in range(pages):
-                    pdf_page = pdf_reader.getPage(i)
+                    pdf_page = pdf_reader.pages[i]
                     text = deepl_translate(message, pdf_page.extractText(), "DE", reply=False)
                     new_page = PyPDF2.pdf.PageObject.createBlankPage(None, 72, 72)
                     new_page.addText(text)

@@ -691,8 +691,8 @@ def translate_document(message: telebot.types.Message) -> None:
         file_uuid = str(uuid.uuid4())
         if file_type == "plain":
             file_type = "txt"
-        with open(f"{MAIN_PATH}{file_uuid}.{file_type}", 'wb') as doc:
-            doc.write(downloaded_file)
+        with open(f"{MAIN_PATH}{file_uuid}.{file_type}", 'w') as doc:
+            doc.write(str(downloaded_file))
         doc.close()
         if file_type == "txt":
             with open(f"{MAIN_PATH}{file_uuid}.txt", 'r') as doc:
@@ -700,7 +700,7 @@ def translate_document(message: telebot.types.Message) -> None:
                 translate_to_document(message, text, "DE")
             doc.close()
         elif file_type == "pdf":
-            with open(f"{MAIN_PATH}{file_uuid}.pdf", 'r', encoding="UTF-8", errors="ignore") as doc:
+            with open(f"{MAIN_PATH}{file_uuid}.pdf", 'r') as doc:
                 text = slate.PDF(doc)
             translate_to_document(message, text, "DE")
         elif file_type is not None:

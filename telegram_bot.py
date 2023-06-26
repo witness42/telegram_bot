@@ -17,7 +17,7 @@ import sys
 import time
 import uuid
 
-import PyPDF2
+import slate3k as slate
 import google.cloud.texttospeech as tts
 import openai
 import paypalrestsdk
@@ -700,12 +700,7 @@ def translate_document(message: telebot.types.Message) -> None:
             doc.close()
         elif file_type == "pdf":
             with open(f"{MAIN_PATH}{file_uuid}.pdf", 'rb') as doc:
-                pdf_reader = PyPDF2.PdfReader(doc)
-                pages = len(pdf_reader.pages)
-                text = ""
-                for i in range(pages):
-                    pdf_page = pdf_reader.pages[i]
-                    text += pdf_page.extract_text()
+                text = slate.PDF(doc)
             translate_to_document(message, text, "DE")
         elif file_type is not None:
             bot.reply_to(message,

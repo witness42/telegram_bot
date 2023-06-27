@@ -19,6 +19,7 @@ import uuid
 
 from youtube_transcript_api import YouTubeTranscriptApi
 import google.cloud.texttospeech as tts
+import langid
 import openai
 import paypalrestsdk
 import requests
@@ -717,14 +718,14 @@ def translate_document(message: telebot.types.Message) -> None:
 
 
 # --- TEXT TO SPEECH ---
-def tts_fn(message: telebot.types.Message, language_code: str, voice_name: str, gender: tts.SsmlVoiceGender) -> None:
+def tts_fn(message: telebot.types.Message, text: str, language_code: str, voice_name: str, gender: tts.SsmlVoiceGender) -> None:
     if message.from_user.id in allowed_users:
-        if message.text[7:] == "":
+        if text == "":
             bot.reply_to(message, "Please provide text to be spoken.")
             return
         start_time = time.time()
         try:
-            text_input = tts.SynthesisInput(text=message.text[7:])
+            text_input = tts.SynthesisInput(text=text)
             voice_params = tts.VoiceSelectionParams(
                 language_code=language_code, name=voice_name, ssml_gender=gender
             )
@@ -755,28 +756,28 @@ def tts_fn(message: telebot.types.Message, language_code: str, voice_name: str, 
 
 
 @bot.message_handler(commands=['ttsge'])
-def ttsg(message: telebot.types.Message) -> None:
-    tts_fn(message, "de-DE", "de-DE-Neural2-C", tts.SsmlVoiceGender.FEMALE)
+def ttsg(message: telebot.types.Message, text: str = None) -> None:
+    tts_fn(message, text if text else message.text[7:], "de-DE", "de-DE-Neural2-C", tts.SsmlVoiceGender.FEMALE)
 
 
 @bot.message_handler(commands=['ttspl'])
-def ttspl(message: telebot.types.Message) -> None:
-    tts_fn(message, "pl-PL", "pl-PL-Standard-D", tts.SsmlVoiceGender.FEMALE)
+def ttspl(message: telebot.types.Message, text: str = None) -> None:
+    tts_fn(message, text if text else message.text[7:], "pl-PL", "pl-PL-Standard-D", tts.SsmlVoiceGender.FEMALE)
 
 
 @bot.message_handler(commands=['ttsfr'])
-def ttsfr(message: telebot.types.Message) -> None:
-    tts_fn(message, "fr-FR", "fr-FR-Neural2-C", tts.SsmlVoiceGender.FEMALE)
+def ttsfr(message: telebot.types.Message, text: str = None) -> None:
+    tts_fn(message, text if text else message.text[7:], "fr-FR", "fr-FR-Neural2-C", tts.SsmlVoiceGender.FEMALE)
 
 
 @bot.message_handler(commands=['ttses'])
-def ttses(message: telebot.types.Message) -> None:
-    tts_fn(message, "es-ES", "es-US-News-F", tts.SsmlVoiceGender.FEMALE)
+def ttses(message: telebot.types.Message, text: str = None) -> None:
+    tts_fn(message, text if text else message.text[7:], "es-ES", "es-US-News-F", tts.SsmlVoiceGender.FEMALE)
 
 
 @bot.message_handler(commands=['ttsen'])
-def ttsen(message: telebot.types.Message) -> None:
-    tts_fn(message, "en-US", "en-US-Standard-F", tts.SsmlVoiceGender.FEMALE)
+def ttsen(message: telebot.types.Message, text: str = None) -> None:
+    tts_fn(message, text if text else message.text[7:], "en-US", "en-US-Standard-F", tts.SsmlVoiceGender.FEMALE)
 
 
 # --- YOUTUBE TRANSCRIPTION ---
@@ -789,6 +790,7 @@ def yt(message: telebot.types.Message) -> None:
         start_time = time.time()
         try:
             yt_id = message.text[4:].split("v=")[1]
+            logging.info(f"User {message.from_user.first_name}({message.from_user.id}) accessed youtube transcription with youtube id: {yt_id}.")
             yt = YouTubeTranscriptApi.get_transcript(yt_id)
             text = ""
             for chunk in yt:
@@ -803,6 +805,20 @@ def yt(message: telebot.types.Message) -> None:
             f.close()
             os.remove(f"{MAIN_PATH}{file_uuid}.txt")
             os.remove(f"{MAIN_PATH}{file_uuid}.pdf")
+            lang = langid.classify(text)[0]
+            bot.reply_to(message, f"Language detected: {lang}")
+            if lang == "en":
+                ttsen(message, text)
+            elif lang == "de":
+                ttsg(message, text)
+            elif lang == "fr":
+                ttsfr(message, text)
+            elif lang == "es":
+                ttses(message, text)
+            elif lang == "pl":
+                ttspl(message, text)
+            else:
+                bot.reply_to(message, "Language not supported for text to speech.")
             stop_time = time.time()
             logging.info(f"User {message.from_user.first_name}({message.from_user.id}) accessed youtube transcription. time taken: {str(round(start_time - stop_time, 2))}")
         except Exception as e:

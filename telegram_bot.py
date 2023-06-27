@@ -793,10 +793,18 @@ def yt(message: telebot.types.Message) -> None:
             text = ""
             for chunk in yt:
                 text += chunk['text'] + " "
-            [bot.reply_to(message, i) for i in message_to_list(text)]
+            file_uuid = str(uuid.uuid4())
+            with open(f"{MAIN_PATH}{file_uuid}.txt", 'w') as f:
+                f.write(text)
+            f.close()
+            os.system(f"pandoc {MAIN_PATH}{file_uuid}.txt -o {MAIN_PATH}{file_uuid}.pdf")
+            with open(f"{MAIN_PATH}{file_uuid}.pdf", "rb") as f:
+                bot.send_document(message.chat.id, f)
+            f.close()
+            os.remove(f"{MAIN_PATH}{file_uuid}.txt")
+            os.remove(f"{MAIN_PATH}{file_uuid}.pdf")
             stop_time = time.time()
-            logging.info(
-                f"User {message.from_user.first_name}({message.from_user.id}) accessed youtube transcription. time taken: {str(round(start_time - stop_time, 2))}")
+            logging.info(f"User {message.from_user.first_name}({message.from_user.id}) accessed youtube transcription. time taken: {str(round(start_time - stop_time, 2))}")
         except Exception as e:
             error = f"Error while generating youtube transcription: {str(e)}"
             logging.error(error)

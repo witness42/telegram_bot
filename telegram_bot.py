@@ -724,33 +724,33 @@ def tts_fn(message: telebot.types.Message, text: str, language_code: str, voice_
             bot.reply_to(message, "Please provide text to be spoken.")
             return
         start_time = time.time()
-        try:
-            text_input = tts.SynthesisInput(text=text)
-            voice_params = tts.VoiceSelectionParams(
-                language_code=language_code, name=voice_name, ssml_gender=gender
-            )
-            audio_config = tts.AudioConfig(audio_encoding=tts.AudioEncoding.MP3)
+        for i in message_to_list(text):
+            try:
+                text_input = tts.SynthesisInput(text=i)
+                voice_params = tts.VoiceSelectionParams(
+                    language_code=language_code, name=voice_name, ssml_gender=gender
+                )
+                audio_config = tts.AudioConfig(audio_encoding=tts.AudioEncoding.MP3)
 
-            client = tts.TextToSpeechClient()
-            response = client.synthesize_speech(
-                input=text_input,
-                voice=voice_params,
-                audio_config=audio_config,
-            )
-            generated_audio_uuid = str(uuid.uuid4())
-            filename = f"{MAIN_PATH}generated-audio/{generated_audio_uuid}.mp3"
-            with open(filename, 'wb') as out:
-                out.write(response.audio_content)
-                bot.send_voice(message.chat.id, response.audio_content)
-            out.close()
-            stop_time = time.time()
-            logging.info(
-                f"User {message.from_user.first_name}({message.from_user.id}) accessed speech generation. time taken: {str(round(start_time - stop_time, 2))}")
-        except Exception as e:
-            error = f"Error while generating speech: {str(e)}"
-            logging.error(error)
-            bot.reply_to(message, error)
-            debug_msg(error)
+                client = tts.TextToSpeechClient()
+                response = client.synthesize_speech(
+                    input=text_input,
+                    voice=voice_params,
+                    audio_config=audio_config,
+                )
+                generated_audio_uuid = str(uuid.uuid4())
+                filename = f"{MAIN_PATH}generated-audio/{generated_audio_uuid}.mp3"
+                with open(filename, 'wb') as out:
+                    out.write(response.audio_content)
+                    bot.send_voice(message.chat.id, response.audio_content)
+                out.close()
+            except Exception as e:
+                error = f"Error while generating speech: {str(e)}"
+                logging.error(error)
+                bot.reply_to(message, error)
+                debug_msg(error)
+        stop_time = time.time()
+        logging.info(f"User {message.from_user.first_name}({message.from_user.id}) accessed speech generation. time taken: {str(round(start_time - stop_time, 2))}")
     else:
         log_unrestricted(message)
 

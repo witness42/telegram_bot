@@ -791,9 +791,9 @@ def yt(message: telebot.types.Message) -> None:
         try:
             yt_id = message.text[4:].split("v=")[1]
             logging.info(f"User {message.from_user.first_name}({message.from_user.id}) accessed youtube transcription with youtube id: {yt_id}.")
-            yt = YouTubeTranscriptApi.get_transcript(yt_id)
+            transcript = YouTubeTranscriptApi.get_transcript(yt_id, languages=["de", "en", "pl", "es", "fr"])
             text = ""
-            for chunk in yt:
+            for chunk in transcript:
                 text += chunk['text'] + " "
             file_uuid = str(uuid.uuid4())
             with open(f"{MAIN_PATH}{file_uuid}.txt", 'w') as f:
@@ -817,8 +817,6 @@ def yt(message: telebot.types.Message) -> None:
                 ttses(message, text)
             elif lang == "pl":
                 ttspl(message, text)
-            else:
-                bot.reply_to(message, "Language not supported for text to speech.")
             stop_time = time.time()
             logging.info(f"User {message.from_user.first_name}({message.from_user.id}) accessed youtube transcription. time taken: {str(round(start_time - stop_time, 2))}")
         except Exception as e:

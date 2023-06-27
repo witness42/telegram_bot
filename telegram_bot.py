@@ -17,7 +17,7 @@ import sys
 import time
 import uuid
 
-import slate3k as slate
+from youtube_transcript_api import YouTubeTranscriptApi
 import google.cloud.texttospeech as tts
 import openai
 import paypalrestsdk
@@ -777,6 +777,33 @@ def ttses(message: telebot.types.Message) -> None:
 @bot.message_handler(commands=['ttsen'])
 def ttsen(message: telebot.types.Message) -> None:
     tts_fn(message, "en-US", "en-US-Standard-F", tts.SsmlVoiceGender.FEMALE)
+
+
+# --- YOUTUBE TRANSCRIPTION ---
+@bot.message_handler(commands=['yt'])
+def yt(message: telebot.types.Message) -> None:
+    if message.from_user.id in allowed_users:
+        if message.text[4:] == "" and not message.text[4:].startswith("https://www.youtube.com/watch?v="):
+            bot.reply_to(message, "Please provide a youtube link.")
+            return
+        start_time = time.time()
+        try:
+            yt_id = message.text[4:].split("v=")[1]
+            yt = YouTubeTranscriptApi.get_transcript(yt_id)
+            text = ""
+            for chunk in yt:
+                text += chunk['text'] + " "
+            [bot.reply_to(message, i) for i in message_to_list(text)]
+            stop_time = time.time()
+            logging.info(
+                f"User {message.from_user.first_name}({message.from_user.id}) accessed youtube transcription. time taken: {str(round(start_time - stop_time, 2))}")
+        except Exception as e:
+            error = f"Error while generating youtube transcription: {str(e)}"
+            logging.error(error)
+            bot.reply_to(message, error)
+            debug_msg(error)
+    else:
+        log_unrestricted(message)
 
 
 @bot.message_handler(func=lambda message: True)

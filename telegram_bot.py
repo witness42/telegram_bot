@@ -794,7 +794,7 @@ def yt_download(message: telebot.types.Message) -> None:
         ydl_opts = {'format': 'bestvideo[ext=mp4]+bestaudio[ext=mp3]/best[ext=mp4]/best',
                     'outtmpl': f"{MAIN_PATH}{file_uuid}.%(ext)s"}
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([message.text[12:]])
+            ydl.download([message.text[13:]])
         bot.send_video(message.chat.id, open(f"{MAIN_PATH}{file_uuid}.mp4", 'rb'))
         ydl_opts = {'format': 'bestaudio/best',
                     'postprocessors': [{
@@ -804,7 +804,7 @@ def yt_download(message: telebot.types.Message) -> None:
                     }],
                     'outtmpl': f"{MAIN_PATH}{file_uuid}.%(ext)s"}
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([message.text[12:]])
+            ydl.download([message.text[13:]])
         bot.send_audio(message.chat.id, open(f"{MAIN_PATH}{file_uuid}.mp3", 'rb'))
         os.remove(f"{MAIN_PATH}{file_uuid}.mp4")
         os.remove(f"{MAIN_PATH}{file_uuid}.mp3")

@@ -17,6 +17,8 @@ import sys
 import time
 import uuid
 
+# somehow pip install youtube_dl is broken, thus use pip install git+https://github.com/ytdl-org/youtube-dl.git@master#egg=youtube_dl
+import youtube_dl as youtube_dl
 from youtube_transcript_api import YouTubeTranscriptApi
 import google.cloud.texttospeech as tts
 import langid
@@ -718,7 +720,8 @@ def translate_document(message: telebot.types.Message) -> None:
 
 
 # --- TEXT TO SPEECH ---
-def tts_fn(message: telebot.types.Message, text: str, language_code: str, voice_name: str, gender: tts.SsmlVoiceGender) -> None:
+def tts_fn(message: telebot.types.Message, text: str, language_code: str, voice_name: str,
+           gender: tts.SsmlVoiceGender) -> None:
     if message.from_user.id in allowed_users:
         if text == "":
             bot.reply_to(message, "Please provide text to be spoken.")
@@ -750,7 +753,8 @@ def tts_fn(message: telebot.types.Message, text: str, language_code: str, voice_
                 bot.reply_to(message, error)
                 debug_msg(error)
         stop_time = time.time()
-        logging.info(f"User {message.from_user.first_name}({message.from_user.id}) accessed speech generation. time taken: {str(round(start_time - stop_time, 2))}")
+        logging.info(
+            f"User {message.from_user.first_name}({message.from_user.id}) accessed speech generation. time taken: {str(round(start_time - stop_time, 2))}")
     else:
         log_unrestricted(message)
 
@@ -780,17 +784,54 @@ def ttsen(message: telebot.types.Message, text: str = None) -> None:
     tts_fn(message, text if text else message.text[7:], "en-US", "en-US-Standard-F", tts.SsmlVoiceGender.FEMALE)
 
 
+# --- YOUTUBE DOWNLOAD ---
+def yt_download(message: telebot.types.Message) -> None:
+    try:
+        start_time = time.time()
+        logging.info(f"User {message.from_user.first_name}({message.from_user.id}) accessed youtube download with the following link: {message.text[12:]}.")
+        bot.reply_to(message, f"Downloading youtube video {message.text.split('?v=')[1]}...")
+        file_uuid = str(uuid.uuid4())
+        ydl_opts = {'format': 'bestvideo[ext=mp4]+bestaudio[ext=mp3]/best[ext=mp4]/best',
+                    'outtmpl': f"{MAIN_PATH}{file_uuid}.%(ext)s"}
+        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([message.text[12:]])
+        bot.send_video(message.chat.id, open(f"{MAIN_PATH}{file_uuid}.mp4", 'rb'))
+        ydl_opts = {'format': 'bestaudio/best',
+                    'postprocessors': [{
+                        'key': 'FFmpegExtractAudio',
+                        'preferredcodec': 'mp3',
+                        'preferredquality': '192',
+                    }],
+                    'outtmpl': f"{MAIN_PATH}{file_uuid}.%(ext)s"}
+        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([message.text[12:]])
+        bot.send_audio(message.chat.id, open(f"{MAIN_PATH}{file_uuid}.mp3", 'rb'))
+        os.remove(f"{MAIN_PATH}{file_uuid}.mp4")
+        os.remove(f"{MAIN_PATH}{file_uuid}.mp3")
+        stop_time = time.time()
+        logging.info(f"User {message.from_user.first_name}({message.from_user.id}) downloaded youtube video. time taken: {str(round(start_time - stop_time, 2))}")
+    except Exception as e:
+        error = f"Error while downloading youtube video: {str(e)}"
+        logging.error(error)
+        bot.reply_to(message, error)
+        debug_msg(error)
+
+
 # --- YOUTUBE TRANSCRIPTION ---
 @bot.message_handler(commands=['yt'])
 def yt(message: telebot.types.Message) -> None:
     if message.from_user.id in allowed_users:
-        if message.text[4:] == "" and not message.text[4:].startswith("https://www.youtube.com/watch?v="):
+        if message.text[4:12] == "download":
+            yt_download(message)
+            return
+        elif message.text[4:] == "" and not message.text[4:].startswith("https://www.youtube.com/watch?v="):
             bot.reply_to(message, "Please provide a youtube link.")
             return
         start_time = time.time()
         try:
-            yt_id = message.text[4:].split("v=")[1]
-            logging.info(f"User {message.from_user.first_name}({message.from_user.id}) accessed youtube transcription with youtube id: {yt_id}.")
+            yt_id = message.text.split("?v=")[1]
+            logging.info(
+                f"User {message.from_user.first_name}({message.from_user.id}) accessed youtube transcription with youtube id: {yt_id}.")
             transcript = YouTubeTranscriptApi.get_transcript(yt_id, languages=["de", "en", "pl", "es", "fr"])
             text = ""
             for chunk in transcript:
@@ -818,7 +859,8 @@ def yt(message: telebot.types.Message) -> None:
             elif lang == "pl":
                 ttspl(message, text)
             stop_time = time.time()
-            logging.info(f"User {message.from_user.first_name}({message.from_user.id}) accessed youtube transcription. time taken: {str(round(start_time - stop_time, 2))}")
+            logging.info(
+                f"User {message.from_user.first_name}({message.from_user.id}) accessed youtube transcription. time taken: {str(round(start_time - stop_time, 2))}")
         except Exception as e:
             error = f"Error while generating youtube transcription: {str(e)}"
             logging.error(error)

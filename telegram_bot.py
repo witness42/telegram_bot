@@ -786,11 +786,11 @@ def ttsen(message: telebot.types.Message, text: str = None) -> None:
 
 # --- YOUTUBE DOWNLOAD ---
 def yt_download(message: telebot.types.Message) -> None:
+    file_uuid = str(uuid.uuid4())
     try:
         start_time = time.time()
         logging.info(f"User {message.from_user.first_name}({message.from_user.id}) accessed youtube download with the following link: {message.text[12:]}.")
         bot.reply_to(message, f"Downloading youtube video {message.text.split('?v=')[1]}...")
-        file_uuid = str(uuid.uuid4())
         ydl_opts = {'format': 'bestvideo[ext=mp4]+bestaudio[ext=mp3]/best[ext=mp4]/best',
                     'outtmpl': f"{MAIN_PATH}{file_uuid}.%(ext)s"}
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
@@ -815,6 +815,10 @@ def yt_download(message: telebot.types.Message) -> None:
         logging.error(error)
         bot.reply_to(message, error)
         debug_msg(error)
+        if os.path.exists(f"{MAIN_PATH}{file_uuid}.mp4"):
+            os.remove(f"{MAIN_PATH}{file_uuid}.mp4")
+        if os.path.exists(f"{MAIN_PATH}{file_uuid}.mp3"):
+            os.remove(f"{MAIN_PATH}{file_uuid}.mp3")
 
 
 # --- YOUTUBE TRANSCRIPTION ---

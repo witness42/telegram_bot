@@ -13,6 +13,7 @@ import json
 import logging
 import math
 import os
+import subprocess
 import sys
 import time
 import uuid
@@ -790,9 +791,16 @@ def yt_download(message: telebot.types.Message) -> None:
     try:
         start_time = time.time()
         logging.info(f"User {message.from_user.first_name}({message.from_user.id}) accessed youtube download with the following link: {message.text[12:]}.")
-        bot.reply_to(message, f"Downloading youtube video {message.text[12:]} ...")
         ydl_opts = {'format': 'bestvideo[ext=mp4]+bestaudio[ext=mp3]/best[ext=mp4]/best',
                     'outtmpl': f"{MAIN_PATH}{file_uuid}.%(ext)s"}
+        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+            meta = ydl.extract_info(message.text[12:])
+        logging.info(meta)
+        if meta.duration > 900:
+            bot.reply_to(message, "Video is too long. Max length is 15 minutes.")
+            logging.info(f"User {message.from_user.first_name}({message.from_user.id}) tried to download a video that was too long.")
+            return
+        bot.reply_to(message, f"Downloading youtube video {meta.title} ...")
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             ydl.download([message.text[13:]])
         bot.send_video(message.chat.id, open(f"{MAIN_PATH}{file_uuid}.mp4", 'rb'))

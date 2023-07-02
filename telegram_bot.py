@@ -796,9 +796,9 @@ def yt_download(message: telebot.types.Message) -> None:
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             meta = ydl.extract_info(message.text[13:])
         logging.info(meta)
-        if meta.duration > 900:
-            bot.reply_to(message, "Video is too long. Max length is 15 minutes.")
-            logging.info(f"User {message.from_user.first_name}({message.from_user.id}) tried to download a video that was too long.")
+        if meta.formats[0].filesize > 5000000:
+            bot.reply_to(message, "Unfortunately the video file size is too large.")
+            logging.info(f"User {message.from_user.first_name}({message.from_user.id}) tried to download a video that was too large.")
             return
         bot.reply_to(message, f"Downloading youtube video {meta.title} ...")
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:

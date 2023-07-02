@@ -796,18 +796,18 @@ def yt_download(message: telebot.types.Message) -> None:
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             ydl.download([message.text[13:]])
         bot.send_video(message.chat.id, open(f"{MAIN_PATH}{file_uuid}.mp4", 'rb'))
-        ydl_opts = {'format': 'bestaudio/best',
-                    'postprocessors': [{
-                        'key': 'FFmpegExtractAudio',
-                        'preferredcodec': 'mp3',
-                        'preferredquality': '192',
-                    }],
-                    'outtmpl': f"{MAIN_PATH}{file_uuid}.%(ext)s"}
-        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([message.text[13:]])
-        bot.send_audio(message.chat.id, open(f"{MAIN_PATH}{file_uuid}.mp3", 'rb'))
         os.remove(f"{MAIN_PATH}{file_uuid}.mp4")
-        os.remove(f"{MAIN_PATH}{file_uuid}.mp3")
+        # ydl_opts = {'format': 'bestaudio/best',
+        #             'postprocessors': [{
+        #                 'key': 'FFmpegExtractAudio',
+        #                 'preferredcodec': 'mp3',
+        #                 'preferredquality': '192',
+        #             }],
+        #             'outtmpl': f"{MAIN_PATH}{file_uuid}.%(ext)s"}
+        # with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+        #     ydl.download([message.text[13:]])
+        # bot.send_audio(message.chat.id, open(f"{MAIN_PATH}{file_uuid}.mp3", 'rb'))
+        # os.remove(f"{MAIN_PATH}{file_uuid}.mp3")
         stop_time = time.time()
         logging.info(f"User {message.from_user.first_name}({message.from_user.id}) downloaded youtube video. time taken: {str(round(start_time - stop_time, 2))}")
     except Exception as e:

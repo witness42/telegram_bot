@@ -795,10 +795,10 @@ def yt_download(message: telebot.types.Message) -> None:
                     'outtmpl': f"{MAIN_PATH}{file_uuid}.%(ext)s"}
         os.system(f"curl {message.text[13:]} > {MAIN_PATH}{file_uuid}.mp4")
         size = os.path.getsize(f"{MAIN_PATH}{file_uuid}.mp4")
+        os.remove(f"{MAIN_PATH}{file_uuid}.mp4")
         if size > 1000000:
             bot.reply_to(message, "Unfortunately the video file size is too large.")
             logging.info(f"User {message.from_user.first_name}({message.from_user.id}) tried to download a video that was too large.")
-            os.remove(f"{MAIN_PATH}{file_uuid}.mp4")
             return
         bot.reply_to(message, f"Downloading youtube video {message.text[13:]} ...")
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:

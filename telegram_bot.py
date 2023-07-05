@@ -152,190 +152,164 @@ def subscribe(message: telebot.types.Message) -> None:
 
 
 # --- ADMIN COMMANDS ---
-@bot.message_handler(commands=['log'])
-def send_log(message: telebot.types.Message) -> None:
+@bot.message_handler(commands=['log', 'docs', 'recordings', 'adduser', 'removeuser', 'stop', 'restart', 'reboot'])
+def admin_command_entry(message: telebot.types.Message) -> None:
     if message.from_user.id not in allowed_users:
         log_unrestricted(message)
         return
     if message.from_user.id in admins:
-        temp_uuid = str(uuid.uuid4())
-        output_uuid = str(uuid.uuid4())
-        os.system(f"cp {MAIN_PATH}odin.log {MAIN_PATH}{temp_uuid}.log")
-        if message.text[5:].isdigit():
-            os.system(f"tail -n {message.text[5:]} {MAIN_PATH}{temp_uuid}.log > {MAIN_PATH}{output_uuid}.log")
-            os.remove(f"{MAIN_PATH}{temp_uuid}.log")
-            temp_uuid = output_uuid
-        os.system(
-            f"cat {MAIN_PATH}{temp_uuid}.log | iconv -f utf-8 -t iso-8859-1 -sc | enscript -X 88591 -o -| ps2pdf - {MAIN_PATH}{temp_uuid}.pdf")
-        with open(f"{MAIN_PATH}{temp_uuid}.pdf", "rb") as f:
-            bot.send_document(message.chat.id, f)
-        f.close()
-        os.remove(f"{MAIN_PATH}{output_uuid}.log")
-        os.remove(f"{MAIN_PATH}{temp_uuid}.pdf")
+        command = message.text.split(" ")[0].split("/")[1]
+        if command == "log":
+            send_log(message)
+        elif command == "docs":
+            send_docs(message)
+        elif command == "recordings":
+            send_recordings(message)
+        elif command == "adduser":
+            add_user(message)
+        elif command == "removeuser":
+            remove_user(message)
+        elif command == "stop":
+            stop(message)
+        elif command == "restart":
+            restart(message)
+        elif command == "reboot":
+            reboot(message)
+        else:
+            bot.reply_to(message, "Command not found!")
     else:
         send_message(message)
+
+
+def send_log(message: telebot.types.Message) -> None:
+    temp_uuid = str(uuid.uuid4())
+    output_uuid = str(uuid.uuid4())
+    os.system(f"cp {MAIN_PATH}odin.log {MAIN_PATH}{temp_uuid}.log")
+    if message.text[5:].isdigit():
+        os.system(f"tail -n {message.text[5:]} {MAIN_PATH}{temp_uuid}.log > {MAIN_PATH}{output_uuid}.log")
+        os.remove(f"{MAIN_PATH}{temp_uuid}.log")
+        temp_uuid = output_uuid
+    os.system(
+        f"cat {MAIN_PATH}{temp_uuid}.log | iconv -f utf-8 -t iso-8859-1 -sc | enscript -X 88591 -o -| ps2pdf - {MAIN_PATH}{temp_uuid}.pdf")
+    with open(f"{MAIN_PATH}{temp_uuid}.pdf", "rb") as f:
+        bot.send_document(message.chat.id, f)
+    f.close()
+    os.remove(f"{MAIN_PATH}{output_uuid}.log")
+    os.remove(f"{MAIN_PATH}{temp_uuid}.pdf")
 
 
 @bot.message_handler(commands=['docs'])
 def send_docs(message: telebot.types.Message) -> None:
-    if message.from_user.id not in allowed_users:
-        log_unrestricted(message)
-        return
-    if message.from_user.id in admins:
-        for i in os.listdir(f"{MAIN_PATH}"):
-            if i.endswith(".pdf") or i.endswith("txt"):
-                with open(f"{MAIN_PATH}{i}", "rb") as f:
-                    bot.send_document(message.chat.id, f)
-                f.close()
-    else:
-        send_message(message)
+    for i in os.listdir(f"{MAIN_PATH}"):
+        if i.endswith(".pdf") or i.endswith("txt"):
+            with open(f"{MAIN_PATH}{i}", "rb") as f:
+                bot.send_document(message.chat.id, f)
+            f.close()
 
 
 @bot.message_handler(commands=['recordings'])
 def send_recordings(message: telebot.types.Message) -> None:
-    if message.from_user.id not in allowed_users:
-        log_unrestricted(message)
-        return
-    if message.from_user.id in admins:
-        for file in os.listdir(f"{MAIN_PATH}recordings"):
-            with open(f"{MAIN_PATH}recordings/{file}", "rb") as f:
-                bot.send_voice(message.chat.id, f)
-            f.close()
-    else:
-        send_message(message)
+    for file in os.listdir(f"{MAIN_PATH}recordings"):
+        with open(f"{MAIN_PATH}recordings/{file}", "rb") as f:
+            bot.send_voice(message.chat.id, f)
+        f.close()
 
 
 @bot.message_handler(commands=['adduser'])
 def add_user(message: telebot.types.Message) -> None:
-    if message.from_user.id not in allowed_users:
-        log_unrestricted(message)
-        return
-    if message.from_user.id in admins:
-        if len(message.text.split()) == 2 and len(list(message.text.split()[1])) == 9 or 10:
-            try:
-                allowed_users.add(int(message.text.split()[1]))
-                new_file = []
-                with open(f"{MAIN_PATH}{CONFIG_NAME}.conf", "r") as f:
-                    for line in f.readlines():
-                        if line.startswith("users:"):
-                            for l in line.replace("\n", ",").split():
-                                if l == f"{message.text.split()[1]},":
-                                    bot.reply_to(message, "User is already allowed!")
-                                    return
-                            nline = line.strip() + f", {int(message.text.split()[1])}\n"
-                            new_file.append(nline)
-                        else:
-                            new_file.append(line)
-                f.close()
-                with open(f"{MAIN_PATH}{CONFIG_NAME}.conf", "w") as f:
-                    f.writelines(new_file)
-                f.close()
-                bot.reply_to(message, f"Added user {message.text.split()[1]}")
-                logging.info(f"Added user {message.text.split()[1]}")
-            except ValueError as e:
-                bot.reply_to(message, "Please enter a valid user id!")
-                bot.reply_to(message, str(e))
-        else:
-            bot.reply_to(message, "Please enter a user id!")
+    if len(message.text.split()) == 2 and len(list(message.text.split()[1])) == 9 or 10:
+        try:
+            allowed_users.add(int(message.text.split()[1]))
+            new_file = []
+            with open(f"{MAIN_PATH}{CONFIG_NAME}.conf", "r") as f:
+                for line in f.readlines():
+                    if line.startswith("users:"):
+                        for l in line.replace("\n", ",").split():
+                            if l == f"{message.text.split()[1]},":
+                                bot.reply_to(message, "User is already allowed!")
+                                return
+                        nline = line.strip() + f", {int(message.text.split()[1])}\n"
+                        new_file.append(nline)
+                    else:
+                        new_file.append(line)
+            f.close()
+            with open(f"{MAIN_PATH}{CONFIG_NAME}.conf", "w") as f:
+                f.writelines(new_file)
+            f.close()
+            bot.reply_to(message, f"Added user {message.text.split()[1]}")
+            logging.info(f"Added user {message.text.split()[1]}")
+        except ValueError as e:
+            bot.reply_to(message, "Please enter a valid user id!")
+            bot.reply_to(message, str(e))
     else:
-        send_message(message)
+        bot.reply_to(message, "Please enter a user id!")
 
 
 @bot.message_handler(commands=['removeuser'])
 def remove_user(message: telebot.types.Message) -> None:
-    if message.from_user.id not in allowed_users:
-        log_unrestricted(message)
-        return
-    if message.from_user.id in admins:
-        if len(message.text.split()) == 2 and len(list(message.text.split()[1])) == 9 or 10:
-            try:
-                new_file = []
-                with open(f"{MAIN_PATH}{CONFIG_NAME}.conf", 'r') as f:
-                    for line in f.readlines():
-                        if line.startswith("users:"):
-                            split_line = line.replace('\n', ',').split()
-                            removed = False
-                            for l in split_line:
-                                if l == split_line[0]:
-                                    nline = f"{l}"
-                                    continue
-                                if l == f"{message.text.split()[1]},":
-                                    # user found and removed
-                                    removed = True
-                                    allowed_users.remove(int(message.text.split()[1]))
-                                    bot.reply_to(message, f"User {message.text.split()[1]} removed!")
-                                    logging.info(f"User {message.text.split()[1]} removed!")
-                                    if l == split_line[-1]:
-                                        nline = list(nline)
-                                        nline[-1] = '\n'
-                                        nline = ''.join(nline)
-                                    continue
+    if len(message.text.split()) == 2 and len(list(message.text.split()[1])) == 9 or 10:
+        try:
+            new_file = []
+            with open(f"{MAIN_PATH}{CONFIG_NAME}.conf", 'r') as f:
+                for line in f.readlines():
+                    if line.startswith("users:"):
+                        split_line = line.replace('\n', ',').split()
+                        removed = False
+                        for l in split_line:
+                            if l == split_line[0]:
+                                nline = f"{l}"
+                                continue
+                            if l == f"{message.text.split()[1]},":
+                                # user found and removed
+                                removed = True
+                                allowed_users.remove(int(message.text.split()[1]))
+                                bot.reply_to(message, f"User {message.text.split()[1]} removed!")
+                                logging.info(f"User {message.text.split()[1]} removed!")
                                 if l == split_line[-1]:
-                                    l = l.replace(',', '\n')
-                                nline += f" {l}"
-                            new_file.append(nline)
-                            if not removed:
-                                bot.reply_to(message, "User could not be found! Was the user allowed before?")
-                        else:
-                            new_file.append(line)
-                f.close()
-                with open(f"{MAIN_PATH}{CONFIG_NAME}.conf", 'w') as f:
-                    f.writelines(new_file)
-                f.close()
-            except ValueError as e:
-                bot.reply_to(message, "Please enter a valid user id!")
-                bot.reply_to(message, str(e))
-        else:
-            bot.reply_to(message, "Please enter a user id!")
+                                    nline = list(nline)
+                                    nline[-1] = '\n'
+                                    nline = ''.join(nline)
+                                continue
+                            if l == split_line[-1]:
+                                l = l.replace(',', '\n')
+                            nline += f" {l}"
+                        new_file.append(nline)
+                        if not removed:
+                            bot.reply_to(message, "User could not be found! Was the user allowed before?")
+                    else:
+                        new_file.append(line)
+            f.close()
+            with open(f"{MAIN_PATH}{CONFIG_NAME}.conf", 'w') as f:
+                f.writelines(new_file)
+            f.close()
+        except ValueError as e:
+            bot.reply_to(message, "Please enter a valid user id!")
+            bot.reply_to(message, str(e))
     else:
-        send_message(message)
+        bot.reply_to(message, "Please enter a user id!")
 
 
 @bot.message_handler(commands=['restart'])
 def restart(message: telebot.types.Message) -> None:
-    if message.from_user.id not in allowed_users:
-        log_unrestricted(message)
-        return
-    if message.from_user.id in admins:
-        bot.reply_to(message, "Restarting...")
-        os.system(f"systemctl restart {PERSONA_NAME}.service")
-    else:
-        send_message(message)
+    bot.reply_to(message, "Restarting...")
+    os.system(f"systemctl restart {PERSONA_NAME}.service")
 
 
 @bot.message_handler(commands=['stop'])
 def stop(message: telebot.types.Message) -> None:
-    if message.from_user.id not in allowed_users:
-        log_unrestricted(message)
-        return
-    if message.from_user.id in admins:
-        bot.reply_to(message, "Stopping...")
-        os.system(f"systemctl stop {PERSONA_NAME}.service")
-    else:
-        send_message(message)
+    bot.reply_to(message, "Stopping...")
+    os.system(f"systemctl stop {PERSONA_NAME}.service")
 
 
 @bot.message_handler(commands=['reboot'])
 def reboot(message: telebot.types.Message) -> None:
-    if message.from_user.id not in allowed_users:
-        log_unrestricted(message)
-        return
-    if message.from_user.id in admins:
-        bot.reply_to(message, "Rebooting...")
-        os.system("systemctl reboot")
-    else:
-        send_message(message)
+    bot.reply_to(message, "Rebooting...")
+    os.system("systemctl reboot")
 
 
 @bot.message_handler(commands=['ping'])
 def ping(message: telebot.types.Message) -> None:
-    if message.from_user.id not in allowed_users:
-        log_unrestricted(message)
-        return
-    if message.from_user.id in admins:
-        bot.reply_to(message, "Pong!")
-    else:
-        send_message(message)
+    bot.reply_to(message, "Pong!")
 
 
 # --- /COMMANDS ---

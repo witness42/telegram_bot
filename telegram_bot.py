@@ -785,6 +785,32 @@ def ttsen(message: telebot.types.Message, text: str = None) -> None:
     tts_fn(message, text if text else message.text[7:], "en-US", "en-US-Standard-F", tts.SsmlVoiceGender.FEMALE)
 
 
+# --- YOUTUBE AUDIO ---
+def yt_audio(message: telebot.types.Message) -> None:
+    file_uuid = str(uuid.uuid4())
+    try:
+        start_time = time.time()
+        logging.info(f"User {message.from_user.first_name}({message.from_user.id}) accessed youtube audio with the following link: {message.text[10:]}.")
+        ydl_opts = {'format': 'bestaudio/best',
+                    'postprocessors': [{
+                        'key': 'FFmpegExtractAudio',
+                        'preferredcodec': 'mp3',
+                        'preferredquality': '192',
+                    }],
+                    'outtmpl': f"{MAIN_PATH}{file_uuid}.%(ext)s"}
+        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([message.text[10:]])
+        bot.send_audio(message.chat.id, open(f"{MAIN_PATH}{file_uuid}.mp3", 'rb'))
+        os.remove(f"{MAIN_PATH}{file_uuid}.mp3")
+        stop_time = time.time()
+        logging.info("time taken for youtube audio: " + str(round(start_time - stop_time, 2)) + " seconds")
+    except Exception as e:
+        error = f"Error while downloading youtube audio: {str(e)}"
+        logging.error(error)
+        bot.reply_to(message, error)
+        debug_msg(error)
+
+
 # --- YOUTUBE DOWNLOAD ---
 def yt_download(message: telebot.types.Message) -> None:
     file_uuid = str(uuid.uuid4())
@@ -793,29 +819,11 @@ def yt_download(message: telebot.types.Message) -> None:
         logging.info(f"User {message.from_user.first_name}({message.from_user.id}) accessed youtube download with the following link: {message.text[13:]}.")
         ydl_opts = {'format': 'bestvideo[ext=mp4]+bestaudio[ext=mp3]/best[ext=mp4]/best',
                     'outtmpl': f"{MAIN_PATH}{file_uuid}.%(ext)s"}
-        os.system(f"curl {message.text[13:]} > {MAIN_PATH}{file_uuid}.mp4")
-        size = os.path.getsize(f"{MAIN_PATH}{file_uuid}.mp4")
-        os.remove(f"{MAIN_PATH}{file_uuid}.mp4")
-        # if size > 800000:
-        #     bot.reply_to(message, "Unfortunately the video file size is too large.")
-        #     logging.info(f"User {message.from_user.first_name}({message.from_user.id}) tried to download a video that was too large.")
-        #     return
         bot.reply_to(message, f"Downloading youtube video {message.text[13:]} ...")
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             ydl.download([message.text[13:]])
         bot.send_video(message.chat.id, open(f"{MAIN_PATH}{file_uuid}.mp4", 'rb'))
         os.remove(f"{MAIN_PATH}{file_uuid}.mp4")
-        # ydl_opts = {'format': 'bestaudio/best',
-        #             'postprocessors': [{
-        #                 'key': 'FFmpegExtractAudio',
-        #                 'preferredcodec': 'mp3',
-        #                 'preferredquality': '192',
-        #             }],
-        #             'outtmpl': f"{MAIN_PATH}{file_uuid}.%(ext)s"}
-        # with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-        #     ydl.download([message.text[13:]])
-        # bot.send_audio(message.chat.id, open(f"{MAIN_PATH}{file_uuid}.mp3", 'rb'))
-        # os.remove(f"{MAIN_PATH}{file_uuid}.mp3")
         stop_time = time.time()
         logging.info(f"User {message.from_user.first_name}({message.from_user.id}) downloaded youtube video. time taken: {str(round(start_time - stop_time, 2))}")
     except Exception as e:
@@ -835,6 +843,9 @@ def yt(message: telebot.types.Message) -> None:
     if message.from_user.id in allowed_users:
         if message.text[4:12] == "download":
             yt_download(message)
+            return
+        elif message.text[4:9] == "audio":
+            yt_audio(message)
             return
         elif message.text[4:] == "" and not message.text[4:].startswith("https://www.youtube.com/watch?v="):
             bot.reply_to(message, "Please provide a youtube link.")

@@ -333,7 +333,7 @@ def clear_context(message: telebot.types.Message) -> None:
 
 @bot.message_handler(commands=[PERSONA_NAME])
 def send_message(message: telebot.types.Message, transcript: str = None) -> None:
-    if message.chat.type == "group" and transcript is None:
+    if transcript is None:
         return
     if message.from_user.id in allowed_users:
         start_time = time.time()

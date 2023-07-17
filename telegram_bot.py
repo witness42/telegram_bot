@@ -4,7 +4,7 @@ AUTHOR = "David Büchner"
 AUTHOR_EMAIL = "david@it-buechner.de"
 DESCRIPTION = "Telegram Bot for the OpenAI API"
 
-TODO: web crawling, activate window method, document translation, if more users import asyncio and use locking everywhere
+TODO: web crawling, activate window method, if more users import asyncio and use locking everywhere
 """
 
 import configparser
@@ -13,7 +13,6 @@ import json
 import logging
 import math
 import os
-import subprocess
 import sys
 import time
 import uuid
@@ -35,8 +34,7 @@ deepl_api_key = os.environ.get("DEEPL_API_KEY")
 
 # --- COMMAND LINE ARGS ---
 if len(sys.argv) != 3:
-    print(
-        "Usage: python3.9 telegram_bot.py <main_folder_path>(e.g. /home/dummyuser/shitty_telegram_bot/) <config_name> (e.g. shitty_telegram_bot)")
+    print("Usage: python3.9 telegram_bot.py <main_folder_path>(e.g. /home/dummyuser/shitty_telegram_bot/) <config_name> (e.g. shitty_telegram_bot)")
     sys.exit(1)
 MAIN_PATH = sys.argv[1]
 CONFIG_NAME = sys.argv[2]
@@ -45,11 +43,9 @@ CONFIG_NAME = sys.argv[2]
 config = configparser.ConfigParser()
 config.read(f"{MAIN_PATH}{CONFIG_NAME}.conf")
 
-LOG_LEVELS = {None: logging.DEBUG, "debug": logging.DEBUG, "info": logging.INFO, "warning": logging.WARNING,
-              "error": logging.ERROR, "critical": logging.CRITICAL}
+LOG_LEVELS = {None: logging.DEBUG, "debug": logging.DEBUG, "info": logging.INFO, "warning": logging.WARNING, "error": logging.ERROR, "critical": logging.CRITICAL}
 LOG_LEVEL = LOG_LEVELS[config.get("log", "level", fallback=None)]
-logging.basicConfig(filename=f"{MAIN_PATH}{CONFIG_NAME}.log", level=LOG_LEVEL,
-                    format="%(asctime)s [%(levelname)-8s] %(process)d %(module)s (%(lineno)d): %(message)s")
+logging.basicConfig(filename=f"{MAIN_PATH}{CONFIG_NAME}.log", level=LOG_LEVEL, format="%(asctime)s [%(levelname)-8s] %(process)d %(module)s (%(lineno)d): %(message)s")
 
 DEBUG = config.getboolean("log", "debug")
 
@@ -551,8 +547,7 @@ def deepl_translate(message: telebot.types.Message, text: str, target_lang: str,
 
     response = requests.post(url, data=payload, headers=headers)
     res = json.loads(response.text)
-    logging.info(
-        f"Translated text for {message.from_user.first_name}({message.from_user.id}): {res['translations'][0]['text']}")
+    logging.info(f"Translated text for {message.from_user.first_name}({message.from_user.id}): {res['translations'][0]['text']}")
     if reply:
         output = message_to_list(res["translations"][0]["text"])
         for i in output:
@@ -620,14 +615,12 @@ def translate_video(message: telebot.types.Message) -> None:
                 elif message.caption.lower() in ["tp", "translate to polish"]:
                     deepl_translate(message, transcript["text"], "PL")
                 else:
-                    logging.info(
-                        f"Translated video text for {message.from_user.first_name}({message.from_user.id}): {transcript['text']}")
+                    logging.info(f"Translated video text for {message.from_user.first_name}({message.from_user.id}): {transcript['text']}")
                     output = message_to_list(transcript["text"])
                     for i in output:
                         bot.reply_to(message, i)
             else:
-                logging.info(
-                    f"Translated video text for {message.from_user.first_name}({message.from_user.id}): {transcript['text']}")
+                logging.info(f"Translated video text for {message.from_user.first_name}({message.from_user.id}): {transcript['text']}")
                 output = message_to_list(transcript["text"])
                 for i in output:
                     bot.reply_to(message, i)
@@ -657,18 +650,18 @@ def translate_to_document(message: telebot.types.Message, text: str, target_lang
     os.remove(f"{MAIN_PATH}{file_uuid}.pdf")
 
 
-@bot.message_handler(content_types=['document'])
+# @bot.message_handler(content_types=['document'])
 def translate_document(message: telebot.types.Message) -> None:
     if message.from_user.id in allowed_users:
         start_time = time.time()
         file_type = message.document.mime_type.split('/')[1]
-        logging.info(
-            f"Translating document with file type: {file_type} for {message.from_user.first_name}({message.from_user.id})")
+        logging.info(f"Translating document with file type: {file_type} for {message.from_user.first_name}({message.from_user.id})")
         file_info = bot.get_file(message.document.file_id)
         downloaded_file = bot.download_file(file_info.file_path)
-        file_uuid = str(uuid.uuid4())
+        # file_uuid = str(uuid.uuid4())
         if file_type == "plain":
-            file_type = "txt"
+            pass
+            # file_type = "txt"
         # with open(f"{MAIN_PATH}{file_uuid}.{file_type}", 'w') as doc:
         #     doc.write()
         # doc.close()
@@ -683,10 +676,8 @@ def translate_document(message: telebot.types.Message) -> None:
         #         text = slate.PDF(doc)
         #     translate_to_document(message, text, "DE")
         # elif file_type is not None:
-        #     bot.reply_to(message,
-        #                  f"Unsupported file type: {file_type}. Reach out to https://t.me/earth_down for support.")
-        #     logging.info(
-        #         f"Unsupported file type: {file_type} for {message.from_user.first_name}({message.from_user.id})")
+        #     bot.reply_to(message, f"Unsupported file type: {file_type}. Reach out to https://t.me/earth_down for support.")
+        #     logging.info(f"Unsupported file type: {file_type} for {message.from_user.first_name}({message.from_user.id})")
         # os.remove(f"{MAIN_PATH}{file_uuid}.{file_type}")
         stop_time = time.time()
         logging.info("time taken for document translation: " + str(round(start_time - stop_time, 2)) + " seconds")
@@ -695,8 +686,7 @@ def translate_document(message: telebot.types.Message) -> None:
 
 
 # --- TEXT TO SPEECH ---
-def tts_fn(message: telebot.types.Message, text: str, language_code: str, voice_name: str,
-           gender: tts.SsmlVoiceGender) -> None:
+def tts_fn(message: telebot.types.Message, text: str, language_code: str, voice_name: str, gender: tts.SsmlVoiceGender) -> None:
     if message.from_user.id in allowed_users:
         if text == "":
             bot.reply_to(message, "Please provide text to be spoken.")
@@ -705,17 +695,13 @@ def tts_fn(message: telebot.types.Message, text: str, language_code: str, voice_
         for i in message_to_list(text):
             try:
                 text_input = tts.SynthesisInput(text=i)
-                voice_params = tts.VoiceSelectionParams(
-                    language_code=language_code, name=voice_name, ssml_gender=gender
-                )
+                # noinspection PyTypeChecker
+                voice_params = tts.VoiceSelectionParams(language_code=language_code, name=voice_name, ssml_gender=gender)
+                # noinspection PyTypeChecker
                 audio_config = tts.AudioConfig(audio_encoding=tts.AudioEncoding.MP3)
 
                 client = tts.TextToSpeechClient()
-                response = client.synthesize_speech(
-                    input=text_input,
-                    voice=voice_params,
-                    audio_config=audio_config,
-                )
+                response = client.synthesize_speech(input=text_input, voice=voice_params, audio_config=audio_config)
                 generated_audio_uuid = str(uuid.uuid4())
                 filename = f"{MAIN_PATH}generated-audio/{generated_audio_uuid}.mp3"
                 with open(filename, 'wb') as out:
@@ -791,8 +777,7 @@ def yt_download(message: telebot.types.Message) -> None:
     try:
         start_time = time.time()
         logging.info(f"User {message.from_user.first_name}({message.from_user.id}) accessed youtube download with the following link: {message.text[13:]}.")
-        ydl_opts = {'format': 'bestvideo[ext=mp4]+bestaudio[ext=mp3]/best[ext=mp4]/best',
-                    'outtmpl': f"{MAIN_PATH}{file_uuid}.%(ext)s"}
+        ydl_opts = {'format': 'bestvideo[ext=mp4]+bestaudio[ext=mp3]/best[ext=mp4]/best', 'outtmpl': f"{MAIN_PATH}{file_uuid}.%(ext)s"}
         bot.reply_to(message, f"Downloading youtube video {message.text[13:]} ...")
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             ydl.download([message.text[13:]])
@@ -881,8 +866,7 @@ def handle_default(message: telebot.types.Message) -> None:
 # --- UNRESTRICTED ACCESS ---
 def log_unrestricted(message: telebot.types.Message) -> None:
     if message.from_user.id not in already_restriced_users:
-        bot.reply_to(message,
-                     "You are not allowed to use me! You can ask https://t.me/earth_down for permission. Your user meta data and all messages are logged!")
+        bot.reply_to(message, "You are not allowed to use me! You can ask https://t.me/earth_down for permission. Your user meta data and all messages are logged!")
         already_restriced_users.add(message.from_user.id)
     while not lock():
         time.sleep(1)

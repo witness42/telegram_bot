@@ -180,7 +180,7 @@ def admin_command_entry(message: telebot.types.Message) -> None:
 def send_log(message: telebot.types.Message) -> None:
     temp_uuid = str(uuid.uuid4())
     output_uuid = str(uuid.uuid4())
-    os.system(f"cp {MAIN_PATH}odin.log {MAIN_PATH}{temp_uuid}.log")
+    os.system(f"cp {MAIN_PATH}{PERSONA_NAME}.log {MAIN_PATH}{temp_uuid}.log")
     if message.text[5:].isdigit():
         os.system(f"tail -n {message.text[5:]} {MAIN_PATH}{temp_uuid}.log > {MAIN_PATH}{output_uuid}.log")
         os.remove(f"{MAIN_PATH}{temp_uuid}.log")

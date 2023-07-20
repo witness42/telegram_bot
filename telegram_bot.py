@@ -367,23 +367,6 @@ def send_message(message: telebot.types.Message, transcript: str = None) -> None
                 messages=user_context[message.from_user.id].get_context()
             )
             output["content"] = response['choices'][0]['message']['content']
-            context_obj.add_message(output)
-            context = user_context[message.from_user.id].get_context()
-            num_token = len(ENCODING.encode(str(context)))
-            while not lock():
-                time.sleep(1)
-            logging.info("token: " + str(num_token))
-            logging.info(str(context))
-            if num_token > 1500:
-                context_obj.remove_message(context[1])
-                context_obj.remove_message(context[2])
-            stop_time = time.time()
-            remove_lock()
-            logging.info("time taken: " + str(round(start_time - stop_time, 2)) + " seconds")
-            output = message_to_list(output["content"])
-            logging.info(f"Number of message chunks: {len(output)}")
-            for i in output:
-                bot.reply_to(message, i, parse_mode="Markdown")
         except telebot.apihelper.ApiTelegramException as e:
             error = f"Error while generating chat response: {str(e)}"
             logging.error(error)
@@ -405,6 +388,23 @@ def send_message(message: telebot.types.Message, transcript: str = None) -> None
             bot.reply_to(message, error)
             debug_msg(error)
             remove_lock()
+        context_obj.add_message(output)
+        context = user_context[message.from_user.id].get_context()
+        num_token = len(ENCODING.encode(str(context)))
+        while not lock():
+            time.sleep(1)
+        logging.info("token: " + str(num_token))
+        logging.info(str(context))
+        if num_token > 1500:
+            context_obj.remove_message(context[1])
+            context_obj.remove_message(context[2])
+        stop_time = time.time()
+        remove_lock()
+        logging.info("time taken: " + str(round(start_time - stop_time, 2)) + " seconds")
+        output = message_to_list(output["content"])
+        logging.info(f"Number of message chunks: {len(output)}")
+        for i in output:
+            bot.reply_to(message, i, parse_mode="Markdown")
     else:
         log_unrestricted(message)
 

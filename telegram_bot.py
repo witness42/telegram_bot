@@ -95,7 +95,7 @@ class Context:
 
 # --- SPLIT TEXT FOR TELEGRAM API ---
 def message_to_list(text: str) -> list:
-    message_chunks = math.floor(len(text) / 4096) + 1
+    message_chunks = math.ceil(len(text) / 4096)
     message_list = []
     for i in range(message_chunks):
         message_list.append(text[i * 4096:(i + 1) * 4096])

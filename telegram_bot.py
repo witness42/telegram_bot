@@ -826,18 +826,19 @@ def yt(message: telebot.types.Message) -> None:
             f.close()
             os.remove(f"{MAIN_PATH}{file_uuid}.txt")
             os.remove(f"{MAIN_PATH}{file_uuid}.pdf")
-            lang = langid.classify(text)[0]
-            bot.reply_to(message, f"Language detected: {lang}")
-            if lang == "en":
-                ttsen(message, text)
-            elif lang == "de":
-                ttsg(message, text)
-            elif lang == "fr":
-                ttsfr(message, text)
-            elif lang == "es":
-                ttses(message, text)
-            elif lang == "pl":
-                ttspl(message, text)
+            # lang = langid.classify(text)[0]
+            # bot.reply_to(message, f"Language detected: {lang}")
+            # if lang == "en":
+            #     ttsen(message, text)
+            # elif lang == "de":
+            #     ttsg(message, text)
+            # elif lang == "fr":
+            #     ttsfr(message, text)
+            # elif lang == "es":
+            #     ttses(message, text)
+            # elif lang == "pl":
+            #     ttspl(message, text)
+            send_message(message, "summarize this text:" + text)
             stop_time = time.time()
             logging.info(
                 f"User {message.from_user.first_name}({message.from_user.id}) accessed youtube transcription. time taken: {str(round(start_time - stop_time, 2))}")

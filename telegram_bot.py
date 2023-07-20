@@ -379,6 +379,7 @@ def send_message(message: telebot.types.Message, transcript: str = None) -> None
             remove_lock()
             logging.info("time taken: " + str(round(start_time - stop_time, 2)) + " seconds")
             output = message_to_list(output["content"])
+            logging.info(f"Number of message chunks: {len(output)}")
             for i in output:
                 bot.reply_to(message, i, parse_mode="Markdown")
         except telebot.apihelper.ApiTelegramException as e:

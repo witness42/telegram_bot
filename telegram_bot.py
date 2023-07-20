@@ -190,8 +190,8 @@ def send_log(message: telebot.types.Message) -> None:
     with open(f"{MAIN_PATH}{temp_uuid}.pdf", "rb") as f:
         bot.send_document(message.chat.id, f)
     f.close()
-    os.remove(f"{MAIN_PATH}{output_uuid}.log")
     os.remove(f"{MAIN_PATH}{temp_uuid}.pdf")
+    os.remove(f"{MAIN_PATH}{output_uuid}.log")
 
 
 @bot.message_handler(commands=['docs'])

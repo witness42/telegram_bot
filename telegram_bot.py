@@ -99,8 +99,11 @@ def message_to_list(text: str) -> list:
         return [text]
     message_chunks = math.ceil(len(text) / 4096) - 1
     message_list = []
+    logging.info(f"Number of message chunks: {message_chunks}")
+    logging.info(f"Length of message: {len(text)}")
     for i in range(message_chunks):
         message_list.append(text[i * 4096:min((i + 1) * 4096, len(text))])
+        logging.info(f"Length of message chunk {i}: {len(message_list[i])}")
     return message_list
 
 

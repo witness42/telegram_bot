@@ -98,7 +98,7 @@ def message_to_list(text: str) -> list:
     message_chunks = math.ceil(len(text) / 4096)
     message_list = []
     for i in range(message_chunks):
-        message_list.append(text[i * 4096:(i + 1) * 4096])
+        message_list.append(text[i * 4096:min((i + 1) * 4096, len(text))])
     return message_list
 
 

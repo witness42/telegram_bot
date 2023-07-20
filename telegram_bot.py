@@ -838,10 +838,12 @@ def yt(message: telebot.types.Message) -> None:
             #     ttses(message, text)
             # elif lang == "pl":
             #     ttspl(message, text)
-            send_message(message, "summarize this text:" + text)
+            if len(ENCODING.encode(text)) < 3000:
+                send_message(message, "summarize this text:" + text)
+            else:
+                bot.send_message(message.chat.id, "Transcript too long for summarization.")
             stop_time = time.time()
-            logging.info(
-                f"User {message.from_user.first_name}({message.from_user.id}) accessed youtube transcription. time taken: {str(round(start_time - stop_time, 2))}")
+            logging.info(f"User {message.from_user.first_name}({message.from_user.id}) accessed youtube transcription. time taken: {str(round(start_time - stop_time, 2))}")
         except Exception as e:
             error = f"Error while generating youtube transcription: {str(e)}"
             logging.error(error)

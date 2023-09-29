@@ -292,14 +292,22 @@ def remove_user(message: telebot.types.Message) -> None:
 
 @bot.message_handler(commands=['restart'])
 def restart(message: telebot.types.Message) -> None:
-    bot.reply_to(message, "Restarting...")
-    os.system(f"systemctl restart {PERSONA_NAME}.service")
+    text = message.text.split(" ")
+    if len(text) == 2:
+        bot.reply_to(message, "Restarting...")
+        os.system(f"systemctl restart {text[1]}.service")
+    else:
+        bot.reply_to(message, "What are you trying to restart?")
 
 
 @bot.message_handler(commands=['stop'])
 def stop(message: telebot.types.Message) -> None:
-    bot.reply_to(message, "Stopping...")
-    os.system(f"systemctl stop {PERSONA_NAME}.service")
+    text = message.text.split(" ")
+    if len(text) == 2:
+        bot.reply_to(message, "Stopping...")
+        os.system(f"systemctl stop {text[1]}.service")
+    else:
+        bot.reply_to(message, "What are you trying to restart?")
 
 
 @bot.message_handler(commands=['reboot'])

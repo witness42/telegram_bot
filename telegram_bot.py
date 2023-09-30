@@ -21,7 +21,6 @@ import uuid
 import youtube_dl as youtube_dl
 from youtube_transcript_api import YouTubeTranscriptApi
 import google.cloud.texttospeech as tts
-import langid
 import openai
 import paypalrestsdk
 import requests

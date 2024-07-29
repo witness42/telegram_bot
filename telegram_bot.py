@@ -544,6 +544,7 @@ def voice_processing(message: telebot.types.Message) -> None:
             logging.error(error)
             bot.reply_to(message, error)
             debug_msg(error)
+            debug_msg(message)
         stop_time = time.time()
         logging.info(
             f"User {message.from_user.first_name}({message.from_user.id}) accessed voice processing. time taken: {str(round(start_time - stop_time, 2))} seconds")

@@ -537,11 +537,11 @@ def voice_processing(message: telebot.types.Message) -> None:
             with open(f"{MAIN_PATH}{audio_uuid}.mp3", 'rb') as audio_file:
                 transcript = openai.Audio.transcribe("whisper-1", audio_file)
                 transcript_chunks = message_to_list(transcript["text"])
-                logging.info(f"Number of transcripted message chunks: {len(transcript_chunks)}")
                 # just forwarded messages were transcripted now all
                 #if message.forward_from is not None:
                 for i in transcript_chunks:
                     bot.send_message(message.chat.id, i)
+                # also send to openai
                 # send_message(message, transcript["text"])
             audio_file.close()
             os.system(
@@ -552,7 +552,6 @@ def voice_processing(message: telebot.types.Message) -> None:
             logging.error(error)
             bot.reply_to(message, error)
             debug_msg(error)
-            debug_msg(message)
         stop_time = time.time()
         logging.info(
             f"User {message.from_user.first_name}({message.from_user.id}) accessed voice processing. time taken: {str(round(start_time - stop_time, 2))} seconds")

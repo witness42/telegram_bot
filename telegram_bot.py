@@ -528,9 +528,13 @@ def voice_processing(message: telebot.types.Message) -> None:
                 f"ffmpeg -i {MAIN_PATH}{audio_uuid}.ogg -codec:a libmp3lame -qscale:a 2 {MAIN_PATH}{audio_uuid}.mp3")
             with open(f"{MAIN_PATH}{audio_uuid}.mp3", 'rb') as audio_file:
                 transcript = openai.Audio.transcribe("whisper-1", audio_file)
+                transcript_chunks = message_to_list(transcript["text"])
+                logging.info(f"Number of transcripted message chunks: {len(transcript_chunks)}")
+                # just forwarded messages were transcripted now all
                 #if message.forward_from is not None:
-                bot.send_message(message.chat.id, transcript["text"])
-                send_message(message, transcript["text"])
+                for i in transcript_chunks:
+                    bot.send_message(message.chat.id, i)
+                # send_message(message, transcript["text"])
             audio_file.close()
             os.system(
                 f"mv {MAIN_PATH}{audio_uuid}.mp3 {MAIN_PATH}recordings/{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.mp3")

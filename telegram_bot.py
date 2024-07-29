@@ -96,7 +96,8 @@ class Context:
 def message_to_list(text: str) -> list:
     if len(text) <= 4096:
         return [text]
-    message_chunks = math.ceil(len(text) / 4096) - 1
+    message_chunks = math.ceil(len(text) / 4096)
+    message_chunks = 1 if message_chunks == 0 else message_chunks
     message_list = []
     logging.info(f"Number of message chunks: {message_chunks}")
     logging.info(f"Length of message: {len(text)}")

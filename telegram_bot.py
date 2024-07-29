@@ -513,7 +513,7 @@ def make_variation(message: telebot.types.Message) -> None:
 
 
 # --- AUDIO TRANSCRIPTION ---
-@bot.message_handler(content_types=['voice'])
+@bot.message_handler(content_types=['voice', 'audio'])
 def voice_processing(message: telebot.types.Message) -> None:
     if message.from_user.id in allowed_users:
         start_time = time.time()

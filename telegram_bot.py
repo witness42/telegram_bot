@@ -518,7 +518,14 @@ def voice_processing(message: telebot.types.Message) -> None:
     if message.from_user.id in allowed_users:
         start_time = time.time()
         try:
-            file_info = bot.get_file(message.voice.file_id)
+            if message.voice is not None:
+                file_info = bot.get_file(message.voice.file_id)
+            elif message.audio is not None:
+                file_info = bot.get_file(message.audio.file_id)
+            else:
+                bot.reply_to(message, "Please provide an audio file.")
+                return
+            
             downloaded_file = bot.download_file(file_info.file_path)
             audio_uuid = str(uuid.uuid4())
             with open(f"{MAIN_PATH}{audio_uuid}.ogg", 'wb') as audio_file:

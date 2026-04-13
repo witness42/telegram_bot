@@ -414,7 +414,7 @@ def send_message(message: telebot.types.Message, transcript: str = None) -> None
             context_obj.remove_message(context[2])
         stop_time = time.time()
         remove_lock()
-        logging.info("time taken: " + str(round(start_time - stop_time, 2)) + " seconds")
+        logging.info("time taken: " + str(round(stop_time - start_time, 2)) + " seconds")
         output = message_to_list(output["content"])
         logging.info(f"Number of message chunks: {len(output)}")
         for i in output:
@@ -445,10 +445,10 @@ def generate(message: telebot.types.Message) -> None:
                 image_url = response['data'][0]['url']
                 response = requests.get(image_url)
                 stop_time = time.time()
-                logging.info("time taken for image generation: " + str(round(start_time - stop_time, 2)) + " seconds")
+                logging.info("time taken for image generation: " + str(round(stop_time - start_time, 2)) + " seconds")
                 bot.send_photo(message.chat.id, response.content,
                                caption=message.text[10:] + "\ntime taken for image generation: " + str(
-                                   round(start_time - stop_time, 2)) + " seconds")
+                                   round(stop_time - start_time, 2)) + " seconds")
             except openai.error.OpenAIError as e:
                 error = f"HTTP STATUS: {e.http_status}, ERROR: {e.error}"
                 logging.error(error)
@@ -499,9 +499,9 @@ def make_variation(message: telebot.types.Message) -> None:
                 response = requests.get(image_url)
                 os.remove(f"{MAIN_PATH}{image_uuid}.png")
                 stop_time = time.time()
-                logging.info("time taken for image generation: " + str(round(start_time - stop_time, 2)) + " seconds")
+                logging.info("time taken for image generation: " + str(round(stop_time - start_time, 2)) + " seconds")
                 bot.send_photo(message.chat.id, response.content, caption="\ntime taken for image generation: " + str(
-                    round(start_time - stop_time, 2)) + " seconds")
+                    round(stop_time - start_time, 2)) + " seconds")
             except openai.error.OpenAIError as e:
                 error = f"HTTP STATUS: {e.http_status}, ERROR: {e.error}"
                 logging.error(error)
@@ -557,7 +557,7 @@ def voice_processing(message: telebot.types.Message) -> None:
             debug_msg(error)
         stop_time = time.time()
         logging.info(
-            f"User {message.from_user.first_name}({message.from_user.id}) accessed voice processing. time taken: {str(round(start_time - stop_time, 2))} seconds")
+            f"User {message.from_user.first_name}({message.from_user.id}) accessed voice processing. time taken: {str(round(stop_time - start_time, 2))} seconds")
     else:
         log_unrestricted(message)
 

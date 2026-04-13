@@ -598,17 +598,17 @@ def translate_message_to_english(message: telebot.types.Message) -> None:
 
 
 @bot.message_handler(commands=['tfr'])
-def translate_message_to_english(message: telebot.types.Message) -> None:
+def translate_message_to_french(message: telebot.types.Message) -> None:
     translate_message(message, message.text, "FR")
 
 
 @bot.message_handler(commands=['tes'])
-def translate_message_to_english(message: telebot.types.Message) -> None:
+def translate_message_to_spanish(message: telebot.types.Message) -> None:
     translate_message(message, message.text, "ES")
 
 
 @bot.message_handler(commands=['tpl'])
-def translate_message_to_english(message: telebot.types.Message) -> None:
+def translate_message_to_polish(message: telebot.types.Message) -> None:
     translate_message(message, message.text, "PL")
 
 

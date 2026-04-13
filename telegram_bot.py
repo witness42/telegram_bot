@@ -20,7 +20,6 @@ import youtube_dl as youtube_dl
 from youtube_transcript_api import YouTubeTranscriptApi
 import google.cloud.texttospeech as tts
 import openai
-import paypalrestsdk
 import requests
 import telebot
 import tiktoken
@@ -103,51 +102,6 @@ def message_to_list(text: str) -> list:
         message_list.append(text[i * 4096:min((i + 1) * 4096, len(text))])
         logging.info(f"Length of message chunk {i}: {len(message_list[i])}")
     return message_list
-
-
-# --- PAYPAL ---
-def create_payment_object() -> paypalrestsdk.Payment:
-    paypalrestsdk.configure({
-        "mode": "sandbox",
-        "client_id": os.environ.get("PAYPAL_CLIENT_ID"),
-        "client_secret": os.environ.get("PAYPAL_CLIENT_SECRET")
-    })
-    return paypalrestsdk.Payment(
-        "create_payment_intent",
-        {
-            "intent": "sale",
-            "payer": {
-                "payment_method": "paypal",
-            },
-            "amount": {
-                "total": 10,
-                "currency": "EUR",
-            },
-            "description": f"Subscription Payment for the Telegram Bot: {bot.user.username}",
-            # "redirect_urls": {
-            #     "return_url": "http://www.yourdomain.com/paypal/success/?paymentID=PAY-1234567",
-            #     "cancel_url": "http://www.yourdomain.com/paypal/fail/"
-            # }
-        }
-    )
-
-
-@bot.message_handler(commands=['subscribe'])
-def subscribe(message: telebot.types.Message) -> None:
-    if message.from_user.id in admins:
-        if message.from_user.id in allowed_users:
-            bot.reply_to(message, "You are already subscribed!")
-            # return # TODO: remove this comment, after debugging
-        payment = create_payment_object()
-
-        if payment.create():
-            for link in payment.links:
-                bot.reply_to(message, link)
-                if link.rel == 'approval_url':
-                    bot.send_message(message.chat.id, f"Please approve payment: {link.href}")
-            # handle_webhook(payment.id)
-        else:
-            bot.reply_to(message, "Something went wrong with the payment. Please try again later.")
 
 
 # --- ADMIN COMMANDS ---

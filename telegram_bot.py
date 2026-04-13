@@ -185,18 +185,21 @@ def admin_command_entry(message: telebot.types.Message) -> None:
 def send_log(message: telebot.types.Message) -> None:
     temp_uuid = str(uuid.uuid4())
     output_uuid = str(uuid.uuid4())
+    used_output_file = False
     os.system(f"cp {MAIN_PATH}{PERSONA_NAME}.log {MAIN_PATH}{temp_uuid}.log")
     if message.text[5:].isdigit():
         os.system(f"tail -n {message.text[5:]} {MAIN_PATH}{temp_uuid}.log > {MAIN_PATH}{output_uuid}.log")
         os.remove(f"{MAIN_PATH}{temp_uuid}.log")
         temp_uuid = output_uuid
+        used_output_file = True
     os.system(
         f"cat {MAIN_PATH}{temp_uuid}.log | iconv -f utf-8 -t iso-8859-1 -sc | enscript -X 88591 -o -| ps2pdf - {MAIN_PATH}{temp_uuid}.pdf")
     with open(f"{MAIN_PATH}{temp_uuid}.pdf", "rb") as f:
         bot.send_document(message.chat.id, f)
     f.close()
     os.remove(f"{MAIN_PATH}{temp_uuid}.pdf")
-    os.remove(f"{MAIN_PATH}{output_uuid}.log")
+    if used_output_file and os.path.exists(f"{MAIN_PATH}{output_uuid}.log"):
+        os.remove(f"{MAIN_PATH}{output_uuid}.log")
 
 
 @bot.message_handler(commands=['docs'])

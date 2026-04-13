@@ -831,7 +831,7 @@ def yt(message: telebot.types.Message) -> None:
         elif message.text[4:9] == "audio":
             yt_audio(message)
             return
-        elif message.text[4:] == "" and not message.text[4:].startswith("https://www.youtube.com/watch?v="):
+        elif message.text[4:] == "" or not message.text[4:].startswith("https://www.youtube.com/watch?v="):
             bot.reply_to(message, "Please provide a youtube link.")
             return
         start_time = time.time()

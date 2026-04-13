@@ -221,7 +221,7 @@ def send_recordings(message: telebot.types.Message) -> None:
 
 @bot.message_handler(commands=['adduser'])
 def add_user(message: telebot.types.Message) -> None:
-    if len(message.text.split()) == 2 and len(list(message.text.split()[1])) == 9 or 10:
+    if len(message.text.split()) == 2 and len(message.text.split()[1]) in [9, 10]:
         try:
             allowed_users.add(int(message.text.split()[1]))
             new_file = []
@@ -251,7 +251,7 @@ def add_user(message: telebot.types.Message) -> None:
 
 @bot.message_handler(commands=['removeuser'])
 def remove_user(message: telebot.types.Message) -> None:
-    if len(message.text.split()) == 2 and len(list(message.text.split()[1])) == 9 or 10:
+    if len(message.text.split()) == 2 and len(message.text.split()[1]) in [9, 10]:
         try:
             new_file = []
             with open(f"{MAIN_PATH}{CONFIG_NAME}.conf", 'r') as f:

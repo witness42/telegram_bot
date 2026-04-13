@@ -655,7 +655,7 @@ def translate_video(message: telebot.types.Message) -> None:
             bot.reply_to(message, error)
             debug_msg(error)
         stop_time = time.time()
-        logging.info("time taken for video translation: " + str(round(start_time - stop_time, 2)) + " seconds")
+        logging.info("time taken for video translation: " + str(round(stop_time - start_time, 2)) + " seconds")
     else:
         log_unrestricted(message)
 
@@ -705,7 +705,7 @@ def translate_document(message: telebot.types.Message) -> None:
         #     logging.info(f"Unsupported file type: {file_type} for {message.from_user.first_name}({message.from_user.id})")
         # os.remove(f"{MAIN_PATH}{file_uuid}.{file_type}")
         stop_time = time.time()
-        logging.info("time taken for document translation: " + str(round(start_time - stop_time, 2)) + " seconds")
+        logging.info("time taken for document translation: " + str(round(stop_time - start_time, 2)) + " seconds")
     else:
         log_unrestricted(message)
 
@@ -740,7 +740,7 @@ def tts_fn(message: telebot.types.Message, text: str, language_code: str, voice_
                 debug_msg(error)
         stop_time = time.time()
         logging.info(
-            f"User {message.from_user.first_name}({message.from_user.id}) accessed speech generation. time taken: {str(round(start_time - stop_time, 2))}")
+            f"User {message.from_user.first_name}({message.from_user.id}) accessed speech generation. time taken: {str(round(stop_time - start_time, 2))}")
     else:
         log_unrestricted(message)
 
@@ -788,7 +788,7 @@ def yt_audio(message: telebot.types.Message) -> None:
         bot.send_audio(message.chat.id, open(f"{MAIN_PATH}{file_uuid}.mp3", 'rb'))
         os.remove(f"{MAIN_PATH}{file_uuid}.mp3")
         stop_time = time.time()
-        logging.info("time taken for youtube audio: " + str(round(start_time - stop_time, 2)) + " seconds")
+        logging.info("time taken for youtube audio: " + str(round(stop_time - start_time, 2)) + " seconds")
     except Exception as e:
         error = f"Error while downloading youtube audio: {str(e)}"
         logging.error(error)
@@ -809,7 +809,7 @@ def yt_download(message: telebot.types.Message) -> None:
         bot.send_video(message.chat.id, open(f"{MAIN_PATH}{file_uuid}.mp4", 'rb'))
         os.remove(f"{MAIN_PATH}{file_uuid}.mp4")
         stop_time = time.time()
-        logging.info(f"User {message.from_user.first_name}({message.from_user.id}) downloaded youtube video. time taken: {str(round(start_time - stop_time, 2))}")
+        logging.info(f"User {message.from_user.first_name}({message.from_user.id}) downloaded youtube video. time taken: {str(round(stop_time - start_time, 2))}")
     except Exception as e:
         error = f"Error while downloading youtube video: {str(e)}"
         logging.error(error)
@@ -870,7 +870,7 @@ def yt(message: telebot.types.Message) -> None:
             else:
                 bot.send_message(message.chat.id, "Transcript too long for summarization.")
             stop_time = time.time()
-            logging.info(f"User {message.from_user.first_name}({message.from_user.id}) accessed youtube transcription. time taken: {str(round(start_time - stop_time, 2))}")
+            logging.info(f"User {message.from_user.first_name}({message.from_user.id}) accessed youtube transcription. time taken: {str(round(stop_time - start_time, 2))}")
         except Exception as e:
             error = f"Error while generating youtube transcription: {str(e)}"
             logging.error(error)

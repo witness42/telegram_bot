@@ -12,7 +12,7 @@ A Python Telegram bot that connects to OpenAI and supports configurable persona 
 4. Run the bot:
 
 ```bash
-python3.9 telegram_bot.py /path/to/project/ <name>
+python3.14 telegram_bot.py /path/to/project/ <name>
 ```
 
 Notes:

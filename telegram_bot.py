@@ -25,7 +25,7 @@ import telebot
 import tiktoken
 
 # --- ENV VARS ---
-openai.api_key = os.environ.get("OPENAI_API_KEY")
+openai_client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 deepl_api_key = os.environ.get("DEEPL_API_KEY")
 
 # --- COMMAND LINE ARGS ---
@@ -325,14 +325,13 @@ def send_message(message: telebot.types.Message, transcript: str = None) -> None
         """
         output = {"role": "assistant", "content": ""}
         try:
-            response = openai.ChatCompletion.create(
+            response = openai_client.chat.completions.create(
                 model=MODEL,
-                api_key=openai.api_key,
                 temperature=TEMPERATURE,
                 max_tokens=MAX_TOKENS,
                 messages=user_context[message.from_user.id].get_context()
             )
-            output["content"] = response['choices'][0]['message']['content']
+            output["content"] = response.choices[0].message.content
         except telebot.apihelper.ApiTelegramException as e:
             error = f"Error while generating chat response: {str(e)}"
             logging.error(error)
@@ -388,21 +387,20 @@ def generate(message: telebot.types.Message) -> None:
             logging.info(
                 f"{message.from_user.first_name}({message.from_user.id}): Image generation message({message.text[10:]})")
             try:
-                response = openai.Image.create(
+                response = openai_client.images.generate(
                     prompt=message.text[10:],
-                    api_key=openai.api_key,
                     n=NUM_IMAGES,
                     size="1024x1024"
                 )
-                image_url = response['data'][0]['url']
+                image_url = response.data[0].url
                 response = requests.get(image_url)
                 stop_time = time.time()
                 logging.info("time taken for image generation: " + str(round(stop_time - start_time, 2)) + " seconds")
                 bot.send_photo(message.chat.id, response.content,
                                caption=message.text[10:] + "\ntime taken for image generation: " + str(
                                    round(stop_time - start_time, 2)) + " seconds")
-            except openai.error.OpenAIError as e:
-                error = f"HTTP STATUS: {e.http_status}, ERROR: {e.error}"
+            except openai.APIStatusError as e:
+                error = f"HTTP STATUS: {e.status_code}, ERROR: {e.message}"
                 logging.error(error)
                 bot.reply_to(message, error)
                 debug_msg(error)
@@ -442,20 +440,21 @@ def make_variation(message: telebot.types.Message) -> None:
             image.close()
             os.system(f"convert {MAIN_PATH}{image_uuid}.png -resize 1024x1024 {MAIN_PATH}{image_uuid}.png")
             try:
-                response = openai.Image.create_variation(
-                    image=open(f"{MAIN_PATH}{image_uuid}.png", "rb"),
-                    n=4 if more_images else NUM_IMAGES,
-                    size="1024x1024"
-                )
-                image_url = response['data'][0]['url']
+                with open(f"{MAIN_PATH}{image_uuid}.png", "rb") as image_file:
+                    response = openai_client.images.create_variation(
+                        image=image_file,
+                        n=4 if more_images else NUM_IMAGES,
+                        size="1024x1024"
+                    )
+                image_url = response.data[0].url
                 response = requests.get(image_url)
                 os.remove(f"{MAIN_PATH}{image_uuid}.png")
                 stop_time = time.time()
                 logging.info("time taken for image generation: " + str(round(stop_time - start_time, 2)) + " seconds")
                 bot.send_photo(message.chat.id, response.content, caption="\ntime taken for image generation: " + str(
                     round(stop_time - start_time, 2)) + " seconds")
-            except openai.error.OpenAIError as e:
-                error = f"HTTP STATUS: {e.http_status}, ERROR: {e.error}"
+            except openai.APIStatusError as e:
+                error = f"HTTP STATUS: {e.status_code}, ERROR: {e.message}"
                 logging.error(error)
                 bot.reply_to(message, error)
                 debug_msg(error)
@@ -490,14 +489,14 @@ def voice_processing(message: telebot.types.Message) -> None:
             os.system(
                 f"ffmpeg -i {MAIN_PATH}{audio_uuid}.ogg -codec:a libmp3lame -qscale:a 2 {MAIN_PATH}{audio_uuid}.mp3")
             with open(f"{MAIN_PATH}{audio_uuid}.mp3", 'rb') as audio_file:
-                transcript = openai.Audio.transcribe("whisper-1", audio_file)
-                transcript_chunks = message_to_list(transcript["text"])
+                transcript = openai_client.audio.transcriptions.create(model="whisper-1", file=audio_file)
+                transcript_chunks = message_to_list(transcript.text)
                 # just forwarded messages were transcripted now all
                 #if message.forward_from is not None:
                 for i in transcript_chunks:
                     bot.send_message(message.chat.id, i)
                 # also send to openai
-                # send_message(message, transcript["text"])
+                # send_message(message, transcript.text)
             audio_file.close()
             os.system(
                 f"mv {MAIN_PATH}{audio_uuid}.mp3 {MAIN_PATH}recordings/{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.mp3")
@@ -579,26 +578,26 @@ def translate_video(message: telebot.types.Message) -> None:
             os.system(f"ffmpeg -i {MAIN_PATH}{file_uuid}.mp4 {MAIN_PATH}{file_uuid}.mp3")
             os.remove(f"{MAIN_PATH}{file_uuid}.mp4")
             with open(f"{MAIN_PATH}{file_uuid}.mp3", 'rb') as audio_file:
-                transcript = openai.Audio.translate("whisper-1", audio_file)
+                transcript = openai_client.audio.translations.create(model="whisper-1", file=audio_file).text
             audio_file.close()
             os.remove(f"{MAIN_PATH}{file_uuid}.mp3")
             if message.caption is not None:
                 if message.caption.lower() in ["tg", "translate to german"]:
-                    deepl_translate(message, transcript["text"], "DE")
+                    deepl_translate(message, transcript, "DE")
                 elif message.caption.lower() in ["tf", "translate to french"]:
-                    deepl_translate(message, transcript["text"], "FR")
+                    deepl_translate(message, transcript, "FR")
                 elif message.caption.lower() in ["ts", "translate to spanish"]:
-                    deepl_translate(message, transcript["text"], "ES")
+                    deepl_translate(message, transcript, "ES")
                 elif message.caption.lower() in ["tp", "translate to polish"]:
-                    deepl_translate(message, transcript["text"], "PL")
+                    deepl_translate(message, transcript, "PL")
                 else:
-                    logging.info(f"Translated video text for {message.from_user.first_name}({message.from_user.id}): {transcript['text']}")
-                    output = message_to_list(transcript["text"])
+                    logging.info(f"Translated video text for {message.from_user.first_name}({message.from_user.id}): {transcript}")
+                    output = message_to_list(transcript)
                     for i in output:
                         bot.reply_to(message, i)
             else:
-                logging.info(f"Translated video text for {message.from_user.first_name}({message.from_user.id}): {transcript['text']}")
-                output = message_to_list(transcript["text"])
+                logging.info(f"Translated video text for {message.from_user.first_name}({message.from_user.id}): {transcript}")
+                output = message_to_list(transcript)
                 for i in output:
                     bot.reply_to(message, i)
         except Exception as e:
